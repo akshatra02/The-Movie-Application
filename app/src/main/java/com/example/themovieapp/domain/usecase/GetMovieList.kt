@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetMovieList @Inject constructor(
-    private val movieRepository: MovieRepositoryImpl
+    private val movieRepository: MovieRepository
 ) {
-    operator fun invoke(category: String): Flow<Resource<List<Movie>>>{
-        return movieRepository.getMovies(category)
+    operator fun invoke(category: String, page: Int): Flow<Resource<List<Movie>>>{
+        return movieRepository.getMovies(category,page)
     }
 }

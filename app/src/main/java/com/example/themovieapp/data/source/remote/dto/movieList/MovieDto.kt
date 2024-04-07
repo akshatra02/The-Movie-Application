@@ -1,4 +1,4 @@
-package com.example.themovieapp.data.source.remote.dto
+package com.example.themovieapp.data.source.remote.dto.movieList
 
 import com.example.themovieapp.data.source.local.room.MovieEntity
 

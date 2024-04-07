@@ -17,10 +17,11 @@ class MovieRepositoryImpl @Inject constructor(
     val moviesApiService: MoviesApi,
     ): MovieRepository {
 
-    override fun getMovies(category: String): Flow<Resource<List<Movie>>> = flow{
+
+    override fun getMovies(category: String, page: Int): Flow<Resource<List<Movie>>> = flow{
         emit(Resource.Loading())
         try {
-            fetchAndInsertMovieList(movieEntityDao,moviesApiService,category)
+            fetchAndInsertMovieList(movieEntityDao,moviesApiService,category,page)
         }
         catch (e : HttpException){
             emit(Resource.Error("Oops Something went wrong! Try again later."))
@@ -35,9 +36,10 @@ class MovieRepositoryImpl @Inject constructor(
 private suspend fun fetchAndInsertMovieList(
     movieEntityDao: MovieEntityDao,
     moviesApiService: MoviesApi,
-    category: String
+    category: String,
+    page: Int,
 ){
-    val remoteMovieList = moviesApiService.getMovieList(category)
+    val remoteMovieList = moviesApiService.getMovieList(category,page)
     movieEntityDao.insertMovieList(remoteMovieList.results.map { it.toMovieEntity(category) })
 
 
@@ -46,7 +48,5 @@ private suspend fun getMovieListFromDb(
     movieEntityDao: MovieEntityDao,
     category: String
 ): List<Movie>{
-    return movieEntityDao.getMovieList(category).map { it.toMovie(category) }
-
-
+    return movieEntityDao.getMovieList(category).map { it.toMovie(category) }.shuffled()
 }

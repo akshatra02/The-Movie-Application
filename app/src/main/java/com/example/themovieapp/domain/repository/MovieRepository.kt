@@ -6,5 +6,5 @@ import com.example.themovieapp.domain.model.Movie
 import kotlinx.coroutines.flow.Flow
 
 interface MovieRepository {
-    fun getMovies(category: String):Flow<Resource<List<Movie>>>
+    fun getMovies(category: String, page: Int):Flow<Resource<List<Movie>>>
 }

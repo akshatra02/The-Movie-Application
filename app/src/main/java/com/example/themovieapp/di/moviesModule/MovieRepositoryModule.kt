@@ -3,6 +3,8 @@ package com.example.themovieapp.di.moviesModule
 import com.example.themovieapp.data.repository.MovieRepositoryImpl
 import com.example.themovieapp.data.source.local.room.MovieEntityDao
 import com.example.themovieapp.data.source.remote.MoviesApi
+import com.example.themovieapp.domain.repository.MovieRepository
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,12 +13,11 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class MovieRepositoryModule {
+abstract class MovieRepositoryModule {
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideMovieRepositoryImpl(
-        moviesApi: MoviesApi,
-        movieEntityDao: MovieEntityDao
-    ): MovieRepositoryImpl = MovieRepositoryImpl(movieEntityDao,moviesApi)
+    abstract fun provideMovieRepository(
+        movieRepositoryImpl: MovieRepositoryImpl
+    ): MovieRepository
 }

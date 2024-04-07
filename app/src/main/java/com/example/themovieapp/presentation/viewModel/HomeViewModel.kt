@@ -1,6 +1,7 @@
 package com.example.themovieapp.presentation.viewModel
 
 import android.view.View
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -21,41 +22,55 @@ class HomeViewModel @Inject constructor(
     private val getMovieList: GetMovieList
 ) : ViewModel() {
 
-    private val _homeUiState = mutableStateOf(MovieUiState())
+    private val _topRatedUiState = mutableStateOf(MovieUiState())
+    val topRatedUiState: State<MovieUiState> = _topRatedUiState
 
-    val homeUiState: State<MovieUiState> = _homeUiState
+    private val _upcomingUiState = mutableStateOf(MovieUiState())
+    val upcomingUiState: State<MovieUiState> = _upcomingUiState
+
+    private val _nowPlayingUiState = mutableStateOf(MovieUiState())
+    val nowPlayingUiState: State<MovieUiState> = _nowPlayingUiState
+
+    private val _popularUiState = mutableStateOf(MovieUiState())
+    val popularUiState: State<MovieUiState> = _popularUiState
+    var poster: String? = null
+
 
     init {
-        getMovies(Category.TOP_RATED)
+        getMovies(Category.NOW_PLAYING, _nowPlayingUiState)
+        getMovies(Category.UPCOMING, _upcomingUiState)
+        getMovies(Category.TOP_RATED, _topRatedUiState)
+        getMovies(Category.POPULAR, _popularUiState)
     }
 
-    fun getMovies(category: String) {
+     fun getMovies(category: String, uiState: MutableState<MovieUiState>) {
         viewModelScope.launch {
-            getMovieList(category).onEach { result ->
+            getMovieList(category, popularUiState.value.page).onEach { result ->
+                poster = result.data?.random()?.poster_path
                 when (result) {
                     is Resource.Error -> {
-                        _homeUiState.value = homeUiState.value.copy(
-                            movieList = result.data ?: emptyList(),
-                            isLoading = false
+                        uiState.value = uiState.value.copy(
+                            movieList = result.data ?: emptyList(), isLoading = false
                         )
                     }
 
                     is Resource.Loading -> {
-                        _homeUiState.value = homeUiState.value.copy(
-                            movieList = result.data ?: emptyList(),
-                            isLoading = true
+                        uiState.value = uiState.value.copy(
+                            movieList = result.data ?: emptyList(), isLoading = true
                         )
                     }
 
                     is Resource.Success -> {
-                        _homeUiState.value = homeUiState.value.copy(
+                        uiState.value = uiState.value.copy(
                             movieList = result.data ?: emptyList(),
-                            isLoading = false
+                            isLoading = false,
+                            page = uiState.value.page + 1,
                         )
                     }
                 }
 
             }.launchIn(this)
+
 
         }
     }
@@ -63,6 +78,7 @@ class HomeViewModel @Inject constructor(
 
 data class MovieUiState(
     val movieList: List<Movie> = emptyList(),
+    val page: Int = 1,
     val isLoading: Boolean = true,
 
     )

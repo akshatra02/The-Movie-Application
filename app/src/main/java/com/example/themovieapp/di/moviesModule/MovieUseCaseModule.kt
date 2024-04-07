@@ -15,5 +15,5 @@ class MovieUseCaseModule {
 
     @Provides
     @Singleton
-    fun providesMovieUseCase(movieRepository: MovieRepositoryImpl): GetMovieList = GetMovieList(movieRepository)
+    fun providesMovieUseCase(movieRepository: MovieRepository): GetMovieList = GetMovieList(movieRepository)
 }

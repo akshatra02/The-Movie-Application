@@ -1,6 +1,6 @@
 package com.example.themovieapp.data.source.remote
 
-import com.example.themovieapp.data.source.remote.dto.MovieListDto
+import com.example.themovieapp.data.source.remote.dto.movieList.MovieListDto
 import okhttp3.Interceptor
 import okhttp3.Response
 import retrofit2.http.GET
@@ -12,7 +12,13 @@ interface MoviesApi {
     @GET("movie/{category}")
     suspend fun getMovieList(
         @Path("category") category: String,
-    ):MovieListDto
+        @Query("page") page: Int
+    ): MovieListDto
+
+    @GET("movie/{movie_id}")
+    suspend fun getMovieById(
+        @Path("movie_id") movieId: Int
+    ): MovieListDto
 
 
     companion object{
