@@ -32,6 +32,26 @@ class MovieRepositoryImpl @Inject constructor(
 
         emit(Resource.Success(getMovieListFromDb(movieEntityDao,category)))
     }
+
+    override fun getMovieById(id: Int): Flow<Resource<Movie>> = flow {
+        emit(Resource.Loading())
+        try {
+            val getMovieById = movieEntityDao.getMovieById(id)
+            emit(Resource.Success(getMovieById.toMovie(getMovieById.category)))
+        }
+        catch (e : HttpException){
+            emit(Resource.Error("Oops Something went wrong! Try again later."))
+        }
+        catch (e : IOException){
+            emit(Resource.Error("Couldn't reach server. Check your internet connection"))
+        }
+
+
+    }
+
+    override fun getAllMovies(): Flow<List<Movie>> = flow {
+       emit(movieEntityDao.getAllMovies().map { it.toMovie(it.category) })
+    }
 }
 private suspend fun fetchAndInsertMovieList(
     movieEntityDao: MovieEntityDao,
@@ -48,5 +68,5 @@ private suspend fun getMovieListFromDb(
     movieEntityDao: MovieEntityDao,
     category: String
 ): List<Movie>{
-    return movieEntityDao.getMovieList(category).map { it.toMovie(category) }.shuffled()
+    return movieEntityDao.getMovieList(category).map { it.toMovie(category) }
 }

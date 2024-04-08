@@ -10,7 +10,14 @@ import javax.inject.Inject
 class GetMovieList @Inject constructor(
     private val movieRepository: MovieRepository
 ) {
-    operator fun invoke(category: String, page: Int): Flow<Resource<List<Movie>>>{
+     fun getMovieList(category: String, page: Int): Flow<Resource<List<Movie>>>{
         return movieRepository.getMovies(category,page)
+    }
+    fun getMovieById(id: Int): Flow<Resource<Movie>>{
+        return movieRepository.getMovieById(id)
+    }
+
+    fun getAllMovies(): Flow<List<Movie>>{
+        return movieRepository.getAllMovies()
     }
 }
