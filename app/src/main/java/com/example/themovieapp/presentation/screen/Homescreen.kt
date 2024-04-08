@@ -3,10 +3,12 @@ package com.example.themovieapp.presentation.screen
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -23,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -32,12 +35,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +56,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
@@ -54,6 +64,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -69,6 +80,12 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
+    val nowPlayingUiState = viewModel.nowPlayingUiState.collectAsState()
+    val upcomingUiState = viewModel.upcomingUiState.collectAsState()
+    val topRatedUiState = viewModel.topRatedUiState.collectAsState()
+    val popularUiState = viewModel.popularUiState.collectAsState()
+
+
     Scaffold(
         topBar = {
             TopAppBar(title = {
@@ -76,44 +93,61 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     text = "Movies",
                     style = MaterialTheme.typography.headlineMedium
                 )
-            })
+            },
+                actions = {
+                    IconButton(onClick = { navController.navigate(Screen.SearchScreen.route) }) {
+                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                    }
+                }
+            )
         }
     ) { paddingValue ->
         Column(
             modifier = Modifier.padding(paddingValue)
 
         ) {
+
             LazyColumn(
             ) {
                 val categories = listOf(
-                    Triple(R.string.now_playing, viewModel.nowPlayingUiState.value.movieList,Category.NOW_PLAYING),
-                    Triple(R.string.upcoming, viewModel.upcomingUiState.value.movieList,Category.UPCOMING),
-                    Triple(R.string.top_rated, viewModel.topRatedUiState.value.movieList,Category.TOP_RATED),
-                    Triple(R.string.popular, viewModel.popularUiState.value.movieList,Category.POPULAR)
+                    Triple(
+                        R.string.now_playing,
+                        nowPlayingUiState.value.movieList,
+                        Category.NOW_PLAYING
+                    ),
+                    Triple(R.string.upcoming, upcomingUiState.value.movieList, Category.UPCOMING),
+                    Triple(R.string.top_rated, topRatedUiState.value.movieList, Category.TOP_RATED),
+                    Triple(R.string.popular, popularUiState.value.movieList, Category.POPULAR)
                 )
                 item {
-                    BackgroundWithTextAndButton(viewModel.poster.toString(), "Search", {})
+                    BackgroundWithTextAndButton(
+                        navController = navController,
+                        background = viewModel.poster.toString(),
+                    )
 
                 }
-                categories.forEach { (titleResId, movieList, category) ->
-                    item {
-                        MovieLazyRow(
-                            title = titleResId,
-                            movieList = movieList,
-                            categoryMoreMovies = {navController.navigate("${Screen.CategoryScreen.route}/${category}")}
-                        )
-                    }
+                items(items = categories) { item ->
+                    val titleResId = item.first
+                    val movieList = item.second
+                    val category = item.third
+                    MovieLazyRow(
+                        title = titleResId,
+                        movieList = movieList,
+                        categoryMoreMovies = { navController.navigate("${Screen.CategoryScreen.route}/${category}") },
+                        navController = navController
+                    )
                 }
             }
         }
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackgroundWithTextAndButton(
+    navController: NavController,
     background: String,
-    buttonText: String,
-    onButtonClick: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -148,33 +182,16 @@ fun BackgroundWithTextAndButton(
                 color = Color.White,
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier,
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
-                OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
-                    placeholder = { Text(text = "Search for movies...")},
-                    shape = RoundedCornerShape(16.dp)
-                )
-                Button(
-                    onClick = onButtonClick,
-                    modifier = Modifier,
-                    shape = RoundedCornerShape(16.dp)
-
-                ) {
-                    Text(text = buttonText)
-                }
             }
         }
     }
-}
 
 @Composable
 fun MovieLazyRow(
     @StringRes title: Int,
     categoryMoreMovies: () -> Unit = {},
     movieList: List<Movie>,
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -201,21 +218,32 @@ fun MovieLazyRow(
                 CardImage(
                     title = currentUiState.title,
                     date = currentUiState.release_date,
-                    photo = currentUiState.poster_path
+                    photo = currentUiState.poster_path,
+                    moreMovieDetails = {
+                        navController.navigate("${Screen.DetailScreen.route}/${currentUiState.id}")
+                    },
                 )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardImage(title: String, date: String, photo: String, modifier: Modifier = Modifier) {
+fun CardImage(
+    title: String,
+    date: String,
+    photo: String,
+    modifier: Modifier = Modifier,
+    moreMovieDetails: () -> Unit
+) {
     Card(
         modifier = modifier
             .width(250.dp)
             .height(400.dp)
             .padding(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        onClick = moreMovieDetails,
     ) {
 
         AsyncImage(
