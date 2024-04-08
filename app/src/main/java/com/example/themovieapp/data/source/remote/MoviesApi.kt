@@ -1,5 +1,7 @@
 package com.example.themovieapp.data.source.remote
 
+import com.example.themovieapp.data.source.remote.dto.movieList.GenreDto
+import com.example.themovieapp.data.source.remote.dto.movieList.GenreListDto
 import com.example.themovieapp.data.source.remote.dto.movieList.MovieListDto
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -15,10 +17,15 @@ interface MoviesApi {
         @Query("page") page: Int
     ): MovieListDto
 
+
+    @GET("genre/movie/list")
+    suspend fun getGenreList(): GenreListDto
+
     @GET("movie/{movie_id}")
     suspend fun getMovieById(
         @Path("movie_id") movieId: Int
     ): MovieListDto
+
 
 
     companion object{

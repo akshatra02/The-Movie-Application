@@ -7,6 +7,7 @@ data class MovieDto(
     val adult: Boolean?,
     val backdrop_path: String?,
     val genre_ids: List<Int>?,
+    val genre_names: List<String>?,
     val original_language: String?,
     val original_title: String?,
     val overview: String?,
@@ -21,7 +22,7 @@ data class MovieDto(
     val category: String,
 
 ){
-    fun toMovieEntity(category: String): MovieEntity{
+    fun toMovieEntity(category: String, genreNames: String="l,l,"): MovieEntity{
         return MovieEntity(
             adult = adult ?: false,
             backdropPath = backdrop_path ?: "",
@@ -41,7 +42,8 @@ data class MovieDto(
                 genre_ids?.joinToString { "," } ?: "-1,-2"
             }catch (e : Exception){
                 "-1,-2"
-            }
+            },
+            genreNames = genreNames
 
         )
 

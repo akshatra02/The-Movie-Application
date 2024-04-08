@@ -13,6 +13,7 @@ data class MovieEntity(
     @ColumnInfo(name = "adult") val adult: Boolean,
     @ColumnInfo(name = "backdrop_path") val backdropPath: String,
     @ColumnInfo(name = "genre_ids")  val genreIds: String,
+    @ColumnInfo(name = "genre_names")  val genreNames: String,
     @ColumnInfo(name = "original_language")  val originalLanguage: String,
     @ColumnInfo(name = "original_title")  val originalTitle: String,
     @ColumnInfo(name = "overview")  val overview: String,
@@ -46,7 +47,9 @@ data class MovieEntity(
                 genreIds.split(",").map { it.toInt() }
             }catch (e : Exception){
                 listOf(-1,-2)
-            }
+            },
+            genre_names = genreNames.split(",")
+
         )
     }
 }

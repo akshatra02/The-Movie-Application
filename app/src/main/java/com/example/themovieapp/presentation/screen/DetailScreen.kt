@@ -81,8 +81,8 @@ fun BackDrop(
                 .crossfade(true)
                 .build(),
             alpha = 0.5f,
-            error = painterResource(id = R.drawable.ic_launcher_background),
-            placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+            error = painterResource(id = R.drawable.ic_broken_image),
+            placeholder = painterResource(id = R.drawable.loading_img),
             contentScale = ContentScale.Crop,
             contentDescription = "",
             modifier = modifier.align(Alignment.TopCenter)
@@ -94,8 +94,8 @@ fun BackDrop(
                 .crossfade(true)
                 .build(),
 
-            error = painterResource(id = R.drawable.ic_launcher_background),
-            placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+            error = painterResource(id = R.drawable.ic_broken_image),
+            placeholder = painterResource(id = R.drawable.loading_img),
             contentDescription = "",
             modifier = modifier
                 .size(200.dp)
@@ -116,7 +116,7 @@ fun MovieContent(movie: Movie, modifier: Modifier) {
             modifier = modifier.align(Alignment.CenterHorizontally)
         )
         Text(
-            text = "${toDate(movie.release_date)} ● ${movie.genre_ids}",
+            text = "${toDate(movie.release_date)} ● ${movie.genre_names}",
             style = MaterialTheme.typography.titleMedium,
             modifier = modifier.alpha(0.5f).padding(vertical = 10.dp)
 
