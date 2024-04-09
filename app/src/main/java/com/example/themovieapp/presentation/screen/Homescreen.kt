@@ -2,33 +2,29 @@ package com.example.themovieapp.presentation.screen
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +33,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Shapes
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -71,9 +68,12 @@ import coil.request.ImageRequest
 import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
+import com.example.themovieapp.presentation.components.BottomTab
+import com.example.themovieapp.presentation.components.CardImage
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewModel.HomeViewModel
 import com.example.themovieapp.utils.Category
+import com.example.themovieapp.utils.TabPage
 import com.example.themovieapp.utils.toDate
 import java.util.Locale
 
@@ -84,7 +84,9 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     val upcomingUiState = viewModel.upcomingUiState.collectAsState()
     val topRatedUiState = viewModel.topRatedUiState.collectAsState()
     val popularUiState = viewModel.popularUiState.collectAsState()
-
+    var tabPage by remember {
+        mutableStateOf(TabPage.HOME)
+    }
 
     Scaffold(
         topBar = {
@@ -100,6 +102,12 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     }
                 }
             )
+        },
+        bottomBar = {
+            BottomAppBar {
+                BottomTab(navController = navController, tabPage = tabPage, onTabSelected = { tabPage = it})
+            }
+
         }
     ) { paddingValue ->
         Column(
@@ -115,8 +123,16 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                         nowPlayingUiState.value.movieList,
                         Category.NOW_PLAYING
                     ),
-                    Triple(R.string.upcoming, upcomingUiState.value.movieList, Category.UPCOMING),
-                    Triple(R.string.top_rated, topRatedUiState.value.movieList, Category.TOP_RATED),
+                    Triple(
+                        R.string.upcoming,
+                        upcomingUiState.value.movieList,
+                        Category.UPCOMING
+                    ),
+                    Triple(
+                        R.string.top_rated,
+                        topRatedUiState.value.movieList,
+                        Category.TOP_RATED
+                    ),
                     Triple(R.string.popular, popularUiState.value.movieList, Category.POPULAR)
                 )
                 item {
@@ -159,8 +175,8 @@ fun BackgroundWithTextAndButton(
                 .data(MoviesApi.IMAGE_BASE_URL.plus(background))
                 .crossfade(true)
                 .build(),
-            error = painterResource(id = R.drawable.ic_launcher_background),
-            placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+            error = painterResource(id = R.drawable.ic_broken_image),
+            placeholder = painterResource(id = R.drawable.loading_img),
             contentScale = ContentScale.FillWidth,
             alpha = .2f,
             contentDescription = "hello",
@@ -182,9 +198,9 @@ fun BackgroundWithTextAndButton(
                 color = Color.White,
             )
             Spacer(modifier = Modifier.height(16.dp))
-            }
         }
     }
+}
 
 @Composable
 fun MovieLazyRow(
@@ -225,53 +241,5 @@ fun MovieLazyRow(
                 )
             }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CardImage(
-    title: String,
-    date: String,
-    photo: String,
-    modifier: Modifier = Modifier,
-    moreMovieDetails: () -> Unit
-) {
-    Card(
-        modifier = modifier
-            .width(250.dp)
-            .height(400.dp)
-            .padding(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        onClick = moreMovieDetails,
-    ) {
-
-        AsyncImage(
-            model = ImageRequest.Builder(context = LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(photo))
-                .crossfade(true)
-                .build(),
-            error = painterResource(id = R.drawable.ic_launcher_background),
-            placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
-//            contentScale = ContentScale,
-            contentDescription = "hello",
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(300.dp)
-        )
-        Column(
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.Start
-        ) {
-            Text(
-                text = title, style = MaterialTheme.typography.titleLarge,
-                modifier = modifier.padding(start = 10.dp)
-            )
-            Text(
-                text = toDate(date),
-                modifier = modifier.padding(start = 10.dp)
-            )
-        }
-
     }
 }

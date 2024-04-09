@@ -16,26 +16,22 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.themovieapp.presentation.screen.CategoryScreen
 import com.example.themovieapp.presentation.screen.DetailScreen
+import com.example.themovieapp.presentation.screen.FavouriteScreen
 import com.example.themovieapp.presentation.screen.HomeScreen
-import com.example.themovieapp.presentation.screen.LandingScreen
 import com.example.themovieapp.presentation.screen.SearchScreen
 
 
 @Composable
 fun Navigation(
 ){
-    var showLandingScreen by remember{
-        mutableStateOf( true)
-    }
-
     val navController: NavHostController = rememberNavController()
-    NavHost(navController = navController, startDestination = if (showLandingScreen) Screen.LandingScreen.route else Screen.HomeScreen.route) {
+    NavHost(navController = navController, startDestination =Screen.HomeScreen.route) {
 
         composable(Screen.HomeScreen.route){
             HomeScreen(navController)
         }
-        composable(Screen.LandingScreen.route){
-            LandingScreen(onTimeout = { showLandingScreen = false})
+        composable(Screen.FavouriteScreen.route){
+            FavouriteScreen(navController)
         }
         composable(Screen.SearchScreen.route){
             SearchScreen(navController)

@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,21 +18,30 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.themovieapp.presentation.components.BottomTab
+import com.example.themovieapp.presentation.components.CardImage
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.navigation.Screen.CategoryScreen.route
 import com.example.themovieapp.presentation.viewModel.CategoryViewModel
 import com.example.themovieapp.presentation.viewModel.HomeViewModel
 import com.example.themovieapp.presentation.viewModel.MovieUiState
+import com.example.themovieapp.utils.TabPage
 import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreen(navController: NavController, viewModel: CategoryViewModel = hiltViewModel(), category: String) {
     val categoryUiState  = viewModel.movieListUiState.collectAsState()
+    var tabPage by remember {
+        mutableStateOf(TabPage.HOME)
+    }
 
     Scaffold (
         topBar = {
@@ -51,10 +61,16 @@ fun CategoryScreen(navController: NavController, viewModel: CategoryViewModel = 
                     }
                 }
             )
+        },
+        bottomBar = {
+            BottomAppBar {
+                BottomTab(navController = navController, tabPage = tabPage, onTabSelected = { tabPage = it})
+            }
+
         }
     ){paddingValues ->
         LaunchedEffect(Unit) {
-            viewModel.getMoviesByCategory (category)
+            viewModel.getMoviesByCategory(category)
         }
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
