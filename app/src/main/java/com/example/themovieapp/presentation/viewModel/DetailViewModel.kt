@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.themovieapp.data.source.remote.Resource
+import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.usecase.GetMovieList
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,8 +25,68 @@ class MovieDetailsViewModel @Inject constructor(
     val movieDetailsUiState = _movieDetailsUiState.asStateFlow()
 
     val movieId = savedStateHandle.get<Int>("movieId")
+
     init {
         getMoviesById(movieId ?: -1)
+    }
+    fun addMovieToFavourite() {
+        viewModelScope.launch {
+            val currentMovie = movieDetailsUiState.value.movieDetails
+            if (currentMovie != null) {
+                val updatedMovie = currentMovie.copy(
+                    isFavourite = !currentMovie.isFavourite
+                )
+                _movieDetailsUiState.update { it.copy(movieDetails = updatedMovie) }
+                // Update database with new isFavourite value (using repository function)
+                updateMovieFavouriteStatus(updatedMovie)
+            }
+        }
+    }
+
+    fun updateMovieFavouriteStatus(movie: Movie) {
+        viewModelScope.launch {
+            val favouriteBody =
+                FavouriteBody(
+                    favorite = movie.isFavourite,
+                    media_id = movie.id,
+                    media_type = "movie"
+                )
+            getMovieList.addMovieToFavourite(favouriteBody).collectLatest { result ->
+                when (result) {
+                    is Resource.Error -> {
+                        _movieDetailsUiState.update {
+                            it.copy(
+                                isLoading = false
+
+                            )
+                        }
+                    }
+
+                    is Resource.Loading -> {
+                        _movieDetailsUiState.update {
+                            it.copy(
+                                isLoading = true
+                            )
+                        }
+                    }
+
+                    is Resource.Success -> {
+                        result.data?.let { movie ->
+                            _movieDetailsUiState.update {
+                                it.copy(movieDetails = movie)
+                            }
+                        }
+                        _movieDetailsUiState.update {
+                            it.copy(
+                                isLoading = false
+                            )
+                        }
+                    }
+                }
+
+            }
+
+        }
     }
 
     private fun getMoviesById(id: Int) {
@@ -72,5 +133,6 @@ class MovieDetailsViewModel @Inject constructor(
 
 data class MovieDetailUiState(
     val movieDetails: Movie? = null,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isFavourite: Boolean = false
 )

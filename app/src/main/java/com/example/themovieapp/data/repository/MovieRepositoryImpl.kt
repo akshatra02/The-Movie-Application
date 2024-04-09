@@ -3,14 +3,15 @@ package com.example.themovieapp.data.repository
 import com.example.themovieapp.data.source.local.room.MovieEntityDao
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.data.source.remote.Resource
+import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.data.source.remote.dto.movieList.GenreDto
-import com.example.themovieapp.data.source.remote.dto.movieList.GenreListDto
-import com.example.themovieapp.domain.model.GenreList
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.repository.MovieRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import okhttp3.ResponseBody
 import retrofit2.HttpException
+import retrofit2.Response
 import java.io.IOException
 import javax.inject.Inject
 
@@ -49,6 +50,51 @@ class MovieRepositoryImpl @Inject constructor(
     override fun getAllMovies(): Flow<List<Movie>> = flow {
         emit(movieEntityDao.getAllMovies().map { it.toMovie(it.category) })
     }
+
+    override fun getFavouriteMovies(): Flow<Resource<List<Movie>>> = flow {
+        emit(Resource.Loading())
+        try {
+            emit(
+                Resource.Success(
+                    movieEntityDao.getFavouriteMovies().map { it.toMovie(it.category) })
+            )
+        } catch (e: HttpException) {
+            emit(Resource.Error("Oops Something went wrong! Try again later."))
+        } catch (e: IOException) {
+            emit(Resource.Error("Couldn't reach server. Check your internet connection"))
+        }
+    }
+
+    override fun addMovieToFavourite(movie: FavouriteBody): Flow<Resource<Movie>> = flow {
+        emit(Resource.Loading())
+        try {
+            emit(
+                Resource.Success(
+                    addMovieToFavouriteRemote(
+                        moviesApiService,
+                        movieEntityDao,
+                        movie
+                    )
+                )
+            )
+        } catch (e: HttpException) {
+            emit(Resource.Error("Oops Something went wrong! Try again later."))
+        } catch (e: IOException) {
+            emit(Resource.Error("Couldn't reach server. Check your internet connection"))
+        }
+    }
+}
+
+private suspend fun addMovieToFavouriteRemote(
+    moviesApiService: MoviesApi,
+    movieEntityDao: MovieEntityDao,
+    movie: FavouriteBody
+): Movie {
+    val response = moviesApiService.addMovieToFavourite(RAW_BODY = movie)
+    val getMovie = movieEntityDao.getMovieById(movie.media_id)
+    val movieEntityStatus = movieEntityDao.updateMovie(getMovie)
+    return getMovie.toMovie(getMovie.category)
+
 }
 
 private suspend fun fetchAndInsertMovieList(
@@ -59,13 +105,15 @@ private suspend fun fetchAndInsertMovieList(
 ) {
     val remoteMovieList = moviesApiService.getMovieList(category, page)
 
-    val genreList = getGenreList(moviesApiService) // Call the new function
+    val genreList = getGenreList(moviesApiService)
+    val favouriteMovieList = moviesApiService.getFavouriteMovies().results
     val movieEntities = remoteMovieList.results.map { movieDto ->
         val genreNames = genreList.filter { it.id in (movieDto.genre_ids ?: emptyList()) }
             .map { it.name }
-        movieDto.toMovieEntity(category, genreNames.joinToString(","))
+        var isFavourite = favouriteMovieList.any { it.id == movieDto.id }
+        movieDto.toMovieEntity(category, genreNames.joinToString(","), isFavourite)
     }
-    movieEntityDao.insertMovieList(movieEntities)
+        movieEntityDao.insertMovieList(movieEntities)
 }
 
 suspend fun getGenreList(

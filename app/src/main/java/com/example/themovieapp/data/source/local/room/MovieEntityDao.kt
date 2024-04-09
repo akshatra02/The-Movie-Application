@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -19,4 +20,12 @@ interface MovieEntityDao {
 
     @Query("SELECT * FROM movie_table")
     suspend fun getAllMovies():List<MovieEntity>
+
+    @Query("SELECT * FROM movie_table WHERE is_favourite = 1")
+    suspend fun getFavouriteMovies():List<MovieEntity>
+
+    @Update
+    suspend fun updateMovie(movieEntity: MovieEntity): Int
+
+
 }

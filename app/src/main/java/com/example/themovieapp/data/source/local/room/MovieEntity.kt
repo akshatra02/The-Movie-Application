@@ -9,6 +9,7 @@ import com.example.themovieapp.domain.model.Movie
 data class MovieEntity(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "category") val category: String,
+    @ColumnInfo(name = "is_favourite")val isFavourite: Boolean,
 
     @ColumnInfo(name = "adult") val adult: Boolean,
     @ColumnInfo(name = "backdrop_path") val backdropPath: String,
@@ -48,7 +49,8 @@ data class MovieEntity(
             }catch (e : Exception){
                 listOf(-1,-2)
             },
-            genre_names = genreNames.split(",")
+            genre_names = genreNames.split(","),
+            isFavourite = isFavourite
 
         )
     }

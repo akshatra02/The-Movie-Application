@@ -20,9 +20,10 @@ data class MovieDto(
     val vote_count: Int?,
     val id: Int?,
     val category: String,
+    val isFavourite: Boolean,
 
 ){
-    fun toMovieEntity(category: String, genreNames: String="l,l,"): MovieEntity{
+    fun toMovieEntity(category: String, genreNames: String, isFavourite: Boolean): MovieEntity{
         return MovieEntity(
             adult = adult ?: false,
             backdropPath = backdrop_path ?: "",
@@ -43,7 +44,9 @@ data class MovieDto(
             }catch (e : Exception){
                 "-1,-2"
             },
-            genreNames = genreNames
+            genreNames = genreNames,
+            isFavourite = isFavourite
+
 
         )
 
