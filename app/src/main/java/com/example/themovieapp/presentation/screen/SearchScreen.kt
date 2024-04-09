@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,8 +41,10 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
+import com.example.themovieapp.presentation.components.BottomTab
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewModel.SearchMovieViewModel
+import com.example.themovieapp.utils.TabPage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,6 +52,9 @@ fun SearchScreen(
     navController:NavController,
     viewModel: SearchMovieViewModel = hiltViewModel()
 ) {
+    var tabPage by remember {
+        mutableStateOf(TabPage.HOME)
+    }
     val searchResult by viewModel.searchResults.collectAsStateWithLifecycle()
     val keyboardController = LocalSoftwareKeyboardController.current
     val searchQuery = viewModel.searchQuery
@@ -70,6 +76,12 @@ fun SearchScreen(
                     }
                 }
             )
+        },
+        bottomBar = {
+            BottomAppBar {
+                BottomTab(navController = navController, tabPage = tabPage, onTabSelected = { tabPage = it})
+            }
+
         }
 
     ) { paddingValues ->
