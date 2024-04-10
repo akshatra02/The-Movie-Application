@@ -13,7 +13,7 @@ interface MovieEntityDao {
     suspend fun insertMovieList(movie: List<MovieEntity>)
 
     @Query("SELECT * FROM movie_table WHERE category = :category")
-    suspend fun getMovieList(category: String): List<MovieEntity>
+    suspend fun getMovieListByCategory(category: String): List<MovieEntity>
 
     @Query("SELECT * FROM movie_table WHERE id = :id")
     suspend fun getMovieById(id : Int): MovieEntity

@@ -49,7 +49,6 @@ fun CardImage(
                 .crossfade(true)
                 .build(),
             error = painterResource(id = R.drawable.ic_broken_image),
-            placeholder = painterResource(id = R.drawable.loading_img),
 //            contentScale = ContentScale,
             contentDescription = "hello",
             modifier = Modifier

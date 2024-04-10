@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -80,78 +81,77 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
-    val nowPlayingUiState = viewModel.nowPlayingUiState.collectAsState()
-    val upcomingUiState = viewModel.upcomingUiState.collectAsState()
-    val topRatedUiState = viewModel.topRatedUiState.collectAsState()
-    val popularUiState = viewModel.popularUiState.collectAsState()
+    val nowPlayingUiState by viewModel.nowPlayingUiState.collectAsState()
+    val upcomingUiState by viewModel.upcomingUiState.collectAsState()
+    val topRatedUiState by viewModel.topRatedUiState.collectAsState()
+    val popularUiState by viewModel.popularUiState.collectAsState()
     var tabPage by remember {
         mutableStateOf(TabPage.HOME)
     }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(title = {
-                Text(
-                    text = "Movies",
-                    style = MaterialTheme.typography.headlineMedium
-                )
-            },
-                actions = {
-                    IconButton(onClick = { navController.navigate(Screen.SearchScreen.route) }) {
-                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                    }
-                }
+    Scaffold(topBar = {
+        TopAppBar(title = {
+            Text(
+                text = "Movies", style = MaterialTheme.typography.headlineMedium
             )
-        },
-        bottomBar = {
-            BottomAppBar {
-                BottomTab(navController = navController, tabPage = tabPage, onTabSelected = { tabPage = it})
+        }, actions = {
+            IconButton(onClick = { navController.navigate(Screen.SearchScreen.route) }) {
+                Icon(imageVector = Icons.Default.Search, contentDescription = null)
             }
-
+        })
+    }, bottomBar = {
+        BottomAppBar {
+            BottomTab(navController = navController,
+                tabPage = tabPage,
+                onTabSelected = { tabPage = it })
         }
-    ) { paddingValue ->
-        Column(
-            modifier = Modifier.padding(paddingValue)
 
-        ) {
-
-            LazyColumn(
+    }) { paddingValue ->
+        if (nowPlayingUiState.movieList.isEmpty() && topRatedUiState.movieList.isEmpty() && popularUiState.movieList.isEmpty()&& upcomingUiState.movieList.isEmpty() ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValue),
+                contentAlignment = Alignment.Center
             ) {
-                val categories = listOf(
-                    Triple(
-                        R.string.now_playing,
-                        nowPlayingUiState.value.movieList,
-                        Category.NOW_PLAYING
-                    ),
-                    Triple(
-                        R.string.upcoming,
-                        upcomingUiState.value.movieList,
-                        Category.UPCOMING
-                    ),
-                    Triple(
-                        R.string.top_rated,
-                        topRatedUiState.value.movieList,
-                        Category.TOP_RATED
-                    ),
-                    Triple(R.string.popular, popularUiState.value.movieList, Category.POPULAR)
-                )
-                item {
-                    BackgroundWithTextAndButton(
-                        navController = navController,
-                        background = viewModel.poster.toString(),
-                    )
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier.padding(paddingValue)
 
-                }
-                items(items = categories) { item ->
-                    val titleResId = item.first
-                    val movieList = item.second
-                    val category = item.third
-                    MovieLazyRow(
-                        title = titleResId,
-                        movieList = movieList,
-                        categoryMoreMovies = { navController.navigate("${Screen.CategoryScreen.route}/${category}") },
-                        navController = navController
+            ) {
+
+                LazyColumn(
+                ) {
+                    val categories = listOf(
+                        Triple(
+                            R.string.now_playing, nowPlayingUiState, Category.NOW_PLAYING
+                        ), Triple(
+                            R.string.upcoming, upcomingUiState, Category.UPCOMING
+                        ), Triple(
+                            R.string.top_rated, topRatedUiState, Category.TOP_RATED
+                        ), Triple(R.string.popular, popularUiState, Category.POPULAR)
                     )
+                    item {
+                        BackgroundWithTextAndButton(
+                            navController = navController,
+                            background = viewModel.poster.toString(),
+                        )
+
+                    }
+                    items(items = categories) { item ->
+                        val titleResId = item.first
+                        val movieListUi = item.second
+                        val category = item.third
+                        MovieLazyRow(
+                            title = titleResId,
+                            movieList = movieListUi.movieList,
+                            categoryMoreMovies = { navController.navigate("${Screen.CategoryScreen.route}/${category}") },
+                            isLoading = movieListUi.isLoading,
+                            loadMoreMovie = { viewModel.loadMore(category) },
+                            navController = navController
+                        )
+                    }
                 }
             }
         }
@@ -166,17 +166,13 @@ fun BackgroundWithTextAndButton(
     background: String,
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomStart
+        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomStart
     ) {
         // Background Image
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(background))
-                .crossfade(true)
-                .build(),
+                .data(MoviesApi.IMAGE_BASE_URL.plus(background)).crossfade(true).build(),
             error = painterResource(id = R.drawable.ic_broken_image),
-            placeholder = painterResource(id = R.drawable.loading_img),
             contentScale = ContentScale.FillWidth,
             alpha = .2f,
             contentDescription = "hello",
@@ -192,8 +188,7 @@ fun BackgroundWithTextAndButton(
                 .padding(16.dp),
         ) {
             Text(
-                text = "Welcome.\n" +
-                        "Millions of movies, TV shows and people to discover. Explore now.",
+                text = "Welcome.\n" + "Millions of movies, TV shows and people to discover. Explore now.",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.White,
             )
@@ -206,6 +201,8 @@ fun BackgroundWithTextAndButton(
 fun MovieLazyRow(
     @StringRes title: Int,
     categoryMoreMovies: () -> Unit = {},
+    isLoading: Boolean,
+    loadMoreMovie : () -> Unit = {},
     movieList: List<Movie>,
     navController: NavController,
     modifier: Modifier = Modifier
@@ -223,8 +220,7 @@ fun MovieLazyRow(
             )
             IconButton(modifier = Modifier, onClick = { categoryMoreMovies() }) {
                 Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "more"
+                    imageVector = Icons.Default.KeyboardArrowDown, contentDescription = "more"
                 )
             }
         }
@@ -239,6 +235,9 @@ fun MovieLazyRow(
                         navController.navigate("${Screen.DetailScreen.route}/${currentUiState.id}")
                     },
                 )
+                if (i >= movieList.size - 1 ){
+                    loadMoreMovie()
+                }
             }
         }
     }
