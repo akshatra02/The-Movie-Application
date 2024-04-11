@@ -1,7 +1,9 @@
-package com.example.themovieapp.presentation.viewmodel
+package com.example.themovieapp.presentation.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
+import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.usecase.FavouriteMoviesUseCase
 import com.example.themovieapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
