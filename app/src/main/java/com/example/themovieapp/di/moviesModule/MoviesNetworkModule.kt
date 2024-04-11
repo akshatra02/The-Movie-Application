@@ -6,10 +6,13 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -28,6 +31,7 @@ class MoviesNetworkModule {
     fun provideOkHttpClient() =
         OkHttpClient
             .Builder()
+            .connectTimeout(60,TimeUnit.SECONDS)
             .addInterceptor(RequestInterceptor())
             .addInterceptor(interceptor)
             .build()
@@ -43,5 +47,4 @@ class MoviesNetworkModule {
          .create(MoviesApi::class.java)
 
     }
-
 }

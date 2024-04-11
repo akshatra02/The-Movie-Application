@@ -7,7 +7,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.themovieapp.domain.model.Movie
-import com.example.themovieapp.domain.usecase.GetMovieList
+import com.example.themovieapp.domain.usecase.GetAllMoviesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchMovieViewModel @Inject constructor(
-    private val getMovieList: GetMovieList
+    private val getAllMoviesUseCase: GetAllMoviesUseCase
 ) : ViewModel() {
     var searchQuery by mutableStateOf("")
         private set
@@ -32,7 +32,7 @@ class SearchMovieViewModel @Inject constructor(
 //
 //        }
 //    }
-    val movieFlow = getMovieList.getAllMovies()
+    val movieFlow = getAllMoviesUseCase()
 
     val searchResults: StateFlow<List<Movie>> =
         snapshotFlow { searchQuery }

@@ -70,7 +70,7 @@ import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.components.CardImage
+import com.example.themovieapp.presentation.components.MovieCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewModel.HomeViewModel
 import com.example.themovieapp.utils.Category
@@ -227,7 +227,7 @@ fun MovieLazyRow(
         LazyRow {
             items(movieList.size) { i ->
                 val currentUiState = movieList.get(i)
-                CardImage(
+                MovieCard(
                     title = currentUiState.title,
                     date = currentUiState.release_date,
                     photo = currentUiState.poster_path,

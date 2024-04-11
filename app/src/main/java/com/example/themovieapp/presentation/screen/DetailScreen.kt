@@ -109,7 +109,6 @@ fun BackDrop(
                 .build(),
             alpha = 0.5f,
             error = painterResource(id = R.drawable.ic_broken_image),
-            placeholder = painterResource(id = R.drawable.loading_img),
             contentScale = ContentScale.Crop,
             contentDescription = "",
             modifier = modifier.align(Alignment.TopCenter)
@@ -122,7 +121,6 @@ fun BackDrop(
                 .build(),
 
             error = painterResource(id = R.drawable.ic_broken_image),
-            placeholder = painterResource(id = R.drawable.loading_img),
             contentDescription = "",
             modifier = modifier
                 .size(200.dp)

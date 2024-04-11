@@ -15,13 +15,13 @@ import okhttp3.ResponseBody
 import retrofit2.Response
 
 interface MovieRepository {
-    fun getMoviesByCategory(category: String,forceFetchFromRemote: Boolean, page: Int): Flow<Resource<List<Movie>>>
-    fun getMovieById(id: Int): Flow<Resource<Movie>>
+    fun getMoviesByCategoryStream(category: String,forceFetchFromRemote: Boolean, page: Int): Flow<Resource<List<Movie>>>
+    fun getMovieByIdStream(id: Int): Flow<Resource<Movie>>
 
-    fun getAllMovies(): Flow<List<Movie>>
+    fun getAllMoviesStream(): Flow<List<Movie>>
 
-     fun getFavouriteMovies():Flow<Resource<List<Movie>>>
+     fun getFavouriteMoviesStream():Flow<Resource<List<Movie>>>
 
-     fun addMovieToFavourite(movie: FavouriteBody): Flow<Resource<Movie>>
+     fun addMovieToFavouriteStream(movie: FavouriteBody): Flow<Resource<Movie>>
 
 }

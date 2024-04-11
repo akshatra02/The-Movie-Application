@@ -29,7 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.components.CardImage
+import com.example.themovieapp.presentation.components.MovieCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.navigation.Screen.CategoryScreen.route
 import com.example.themovieapp.presentation.viewModel.CategoryViewModel
@@ -97,7 +97,7 @@ fun CategoryScreen(
             ) {
                 items(categoryUiState.movieList.size) { i ->
                     val movie = categoryUiState.movieList[i]
-                    CardImage(
+                    MovieCard(
                         title = movie.title,
                         date = movie.release_date,
                         photo = movie.poster_path,
@@ -105,8 +105,19 @@ fun CategoryScreen(
                             navController.navigate("${Screen.DetailScreen.route}/${movie.id}")
                         })
 
-                    if (i >= categoryUiState.movieList.size - 1) {
+                    if (i >= categoryUiState.movieList.size - 1 && !categoryUiState.isLoading) {
                         viewModel.loadMore()
+                    }
+                    else if(i >= categoryUiState.movieList.size - 1 && categoryUiState.isLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+
                     }
                 }
             }
