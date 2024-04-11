@@ -27,7 +27,7 @@ import com.example.themovieapp.utils.toDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardImage(
+fun MovieCard(
     title: String,
     date: String,
     photo: String,

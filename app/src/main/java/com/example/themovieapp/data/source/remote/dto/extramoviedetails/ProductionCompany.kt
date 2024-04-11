@@ -1,4 +1,4 @@
-package com.example.themovieapp.data.source.remote.dto.movieDetails
+package com.example.themovieapp.data.source.remote.dto.extramoviedetails
 
 data class ProductionCompany(
     val id: Int,

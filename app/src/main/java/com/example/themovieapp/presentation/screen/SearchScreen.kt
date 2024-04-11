@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,7 +42,7 @@ import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
 import com.example.themovieapp.presentation.navigation.Screen
-import com.example.themovieapp.presentation.viewModel.SearchMovieViewModel
+import com.example.themovieapp.presentation.viewmodel.SearchMovieViewModel
 import com.example.themovieapp.utils.TabPage
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,11 +1,12 @@
-package com.example.themovieapp.presentation.viewModel
+package com.example.themovieapp.presentation.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.domain.model.Movie
-import com.example.themovieapp.domain.usecase.GetMovieList
+import com.example.themovieapp.domain.usecase.FavouriteMoviesUseCase
+import com.example.themovieapp.domain.usecase.GetMovieByIdUseCase
 import com.example.themovieapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
-    private val getMovieList: GetMovieList,
+    private val getMovieByIdUseCase: GetMovieByIdUseCase,
+    private val favouriteMoviesUseCase: FavouriteMoviesUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -51,7 +53,7 @@ class MovieDetailsViewModel @Inject constructor(
                     media_id = movie.id,
                     media_type = "movie"
                 )
-            getMovieList.addMovieToFavourite(favouriteBody).collectLatest { result ->
+            favouriteMoviesUseCase.addMovieToFavouriteStream(favouriteBody).collectLatest { result ->
                 when (result) {
                     is Resource.Error -> {
                         _movieDetailsUiState.update {
@@ -94,7 +96,7 @@ class MovieDetailsViewModel @Inject constructor(
             _movieDetailsUiState.update {
                 it.copy(isLoading = true)
             }
-            getMovieList.getMovieById(id).collectLatest { result ->
+            getMovieByIdUseCase(id).collectLatest { result ->
                 when (result) {
                     is Resource.Error -> {
                         _movieDetailsUiState.update {

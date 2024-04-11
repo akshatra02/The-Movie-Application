@@ -1,11 +1,10 @@
-package com.example.themovieapp.data.source.local.room
+package com.example.themovieapp.data.source.local.room.moviedetails
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MovieEntityDao {

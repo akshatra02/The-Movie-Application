@@ -1,6 +1,5 @@
 package com.example.themovieapp.presentation.screen
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,12 +12,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,14 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.components.CardImage
+import com.example.themovieapp.presentation.components.MovieCard
 import com.example.themovieapp.presentation.navigation.Screen
-import com.example.themovieapp.presentation.navigation.Screen.CategoryScreen.route
-import com.example.themovieapp.presentation.viewModel.CategoryViewModel
-import com.example.themovieapp.presentation.viewModel.HomeViewModel
-import com.example.themovieapp.presentation.viewModel.MovieUiState
+import com.example.themovieapp.presentation.viewmodel.CategoryViewModel
 import com.example.themovieapp.utils.TabPage
-import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,7 +90,7 @@ fun CategoryScreen(
             ) {
                 items(categoryUiState.movieList.size) { i ->
                     val movie = categoryUiState.movieList[i]
-                    CardImage(
+                    MovieCard(
                         title = movie.title,
                         date = movie.release_date,
                         photo = movie.poster_path,
@@ -105,8 +98,19 @@ fun CategoryScreen(
                             navController.navigate("${Screen.DetailScreen.route}/${movie.id}")
                         })
 
-                    if (i >= categoryUiState.movieList.size - 1) {
+                    if (i >= categoryUiState.movieList.size - 1 && !categoryUiState.isLoading) {
                         viewModel.loadMore()
+                    }
+                    else if(i >= categoryUiState.movieList.size - 1 && categoryUiState.isLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(paddingValues),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+
                     }
                 }
             }

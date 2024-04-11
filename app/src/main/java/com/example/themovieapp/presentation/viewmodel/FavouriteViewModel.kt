@@ -1,11 +1,8 @@
-package com.example.themovieapp.presentation.viewModel
+package com.example.themovieapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
-import com.example.themovieapp.data.source.remote.dto.movieList.MovieDto
-import com.example.themovieapp.domain.model.Movie
-import com.example.themovieapp.domain.usecase.GetMovieList
+import com.example.themovieapp.domain.usecase.FavouriteMoviesUseCase
 import com.example.themovieapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FavouriteViewModel @Inject constructor(
-    private val getMovieList: GetMovieList
+    private val favouriteMoviesUseCase: FavouriteMoviesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MovieUiState())
@@ -27,9 +24,9 @@ class FavouriteViewModel @Inject constructor(
         getFavouriteMovies()
     }
 
-    fun getFavouriteMovies() {
+    private fun getFavouriteMovies() {
         viewModelScope.launch {
-            getMovieList.getFavouriteMovies().collectLatest { result ->
+            favouriteMoviesUseCase.getFavouriteMoviesStream().collectLatest { result ->
                 when (result) {
                     is Resource.Error -> {
                         _uiState.update {
@@ -42,16 +39,15 @@ class FavouriteViewModel @Inject constructor(
                     is Resource.Loading -> {
                         _uiState.update {
                             it.copy(
-                                movieList = result.data ?: emptyList(), isLoading = true
+                                movieList = result.data ?: emptyList(), isLoading = result.isLoading
                             )
                         }
                     }
-
-                    is Resource.Success -> {
+                    is Resource.Success ->
+                        result.data?.let{movieList ->
                         _uiState.update {
                             it.copy(
-                                movieList = result.data ?: emptyList(),
-                                isLoading = false,
+                                movieList = _uiState.value.movieList + movieList,
                                 page = uiState.value.page + 1,
                             )
                         }

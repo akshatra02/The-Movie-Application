@@ -1,18 +1,14 @@
 package com.example.themovieapp.presentation.screen
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.BottomAppBar
@@ -24,12 +20,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,8 +42,7 @@ import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.navigation.Screen
-import com.example.themovieapp.presentation.viewModel.MovieDetailsViewModel
+import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
 import com.example.themovieapp.utils.TabPage
 import com.example.themovieapp.utils.toDate
 
@@ -109,7 +102,6 @@ fun BackDrop(
                 .build(),
             alpha = 0.5f,
             error = painterResource(id = R.drawable.ic_broken_image),
-            placeholder = painterResource(id = R.drawable.loading_img),
             contentScale = ContentScale.Crop,
             contentDescription = "",
             modifier = modifier.align(Alignment.TopCenter)
@@ -122,7 +114,6 @@ fun BackDrop(
                 .build(),
 
             error = painterResource(id = R.drawable.ic_broken_image),
-            placeholder = painterResource(id = R.drawable.loading_img),
             contentDescription = "",
             modifier = modifier
                 .size(200.dp)

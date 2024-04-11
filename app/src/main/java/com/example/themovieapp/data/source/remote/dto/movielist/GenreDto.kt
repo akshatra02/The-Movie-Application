@@ -1,4 +1,4 @@
-package com.example.themovieapp.data.source.remote.dto.movieList
+package com.example.themovieapp.data.source.remote.dto.movielist
 
 import com.example.themovieapp.domain.model.GenreList
 

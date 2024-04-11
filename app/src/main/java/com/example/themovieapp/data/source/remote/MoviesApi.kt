@@ -1,15 +1,13 @@
 package com.example.themovieapp.data.source.remote
 
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
-import com.example.themovieapp.data.source.remote.dto.movieList.GenreDto
-import com.example.themovieapp.data.source.remote.dto.movieList.GenreListDto
-import com.example.themovieapp.data.source.remote.dto.movieList.MovieListDto
+import com.example.themovieapp.data.source.remote.dto.movielist.GenreListDto
+import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path

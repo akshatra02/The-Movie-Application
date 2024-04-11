@@ -1,4 +1,4 @@
-package com.example.themovieapp.data.source.local.room
+package com.example.themovieapp.data.source.local.room.moviedetails
 
 import android.content.Context
 import androidx.room.Database
@@ -17,7 +17,7 @@ abstract class MovieDatabase: RoomDatabase() {
         @Volatile
         var INSTANCE: MovieDatabase? = null
 
-        fun getDatabase(context: Context):MovieDatabase{
+        fun getDatabase(context: Context): MovieDatabase {
             return INSTANCE ?: synchronized(this){
                 Room.databaseBuilder(
                     context,

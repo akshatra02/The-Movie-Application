@@ -1,20 +1,16 @@
-package com.example.themovieapp.presentation.viewModel
+package com.example.themovieapp.presentation.viewmodel
 
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.themovieapp.R
 import com.example.themovieapp.domain.model.Movie
-import com.example.themovieapp.domain.usecase.GetMovieList
-import com.example.themovieapp.presentation.ui.theme.md_theme_dark_error
+import com.example.themovieapp.domain.usecase.GetMoviesByCategoryUseCase
 import com.example.themovieapp.utils.Category
 import com.example.themovieapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getMovieList: GetMovieList
+    private val getMoviesByCategoryUseCase: GetMoviesByCategoryUseCase
 ) : ViewModel() {
 
 
@@ -65,7 +61,7 @@ class HomeViewModel @Inject constructor(
             if (_uiState != null) {
                 _uiState.update { it.copy(isLoading = true) }
 
-                getMovieList.getMoviesByCategory(category, forceFetchFromRemote, _uiState.value.page)
+                getMoviesByCategoryUseCase(category, forceFetchFromRemote, _uiState.value.page)
                     .collectLatest { result ->
                         when (result) {
                             is Resource.Error -> {
@@ -90,7 +86,8 @@ class HomeViewModel @Inject constructor(
                                     _uiState.update {
                                         it.copy(
                                             movieList = _uiState.value.movieList + moviesList,
-                                            page = _uiState.value.page + 1
+                                            page = _uiState.value.page + 1,
+                                            isLoading = false
                                         )
                                     }
 
