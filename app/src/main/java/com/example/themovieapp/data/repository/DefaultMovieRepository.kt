@@ -1,9 +1,12 @@
 package com.example.themovieapp.data.repository
 
+import android.util.Log
 import com.example.themovieapp.data.source.local.room.moviedetails.MovieEntityDao
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.data.source.remote.dto.movielist.GenreDto
+import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
+import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.repository.MovieRepository
 import com.example.themovieapp.utils.Resource
@@ -18,17 +21,39 @@ class DefaultMovieRepository @Inject constructor(
     val moviesApiService: MoviesApi,
 ) : MovieRepository {
 
+    override suspend fun addExtraMovieDetails(id: Int): Flow<Resource<ExtraMovieDetails>> = flow {
+
+        val hasExtraMovieDetails = movieEntityDao.getExtraMovieDetailsById(id)
+        if (hasExtraMovieDetails == null) {
+            try {
+               fetchAndInsertExtraMovieDetails(moviesApiService, movieEntityDao, id)
+            } catch (e: HttpException) {
+                emit(Resource.Error("Oops Something went wrong! Try again later."))
+                return@flow
+            } catch (e: IOException) {
+                emit(Resource.Error("Couldn't reach server. Check your internet connection"))
+                return@flow
+            }
+        }
+        emit(
+            Resource.Success(
+                movieEntityDao.getExtraMovieDetailsById(id)?.toExtraMovieDetails()
+            )
+        )
+        return@flow
+    }
+
     override fun getMoviesByCategoryStream(
         category: String, forceFetchFromRemote: Boolean, page: Int
     ): Flow<Resource<List<Movie>>> = flow {
         emit(Resource.Loading(true))
-            val localMovieList = movieEntityDao.getMovieListByCategory(category)
-            val shouldLoadLoadMovies = localMovieList.isNotEmpty() && !forceFetchFromRemote
+        val localMovieList = movieEntityDao.getMovieListByCategory(category)
+        val shouldLoadLoadMovies = localMovieList.isNotEmpty() && !forceFetchFromRemote
 
-            if (shouldLoadLoadMovies) {
-                emit(Resource.Success(getMovieListFromDb(movieEntityDao, category)))
-                return@flow
-            }
+        if (shouldLoadLoadMovies) {
+            emit(Resource.Success(getMovieListFromDb(movieEntityDao, category)))
+            return@flow
+        }
         try {
             fetchAndInsertMovieList(
                 movieEntityDao, moviesApiService, category, page
@@ -39,7 +64,6 @@ class DefaultMovieRepository @Inject constructor(
         } catch (e: IOException) {
             emit(Resource.Error("Couldn't reach server. Check your internet connection"))
             return@flow
-
         }
         emit(Resource.Success(getMovieListFromDb(movieEntityDao, category)))
         return@flow
@@ -157,4 +181,14 @@ private suspend fun getMovieListFromDb(
     movieEntityDao: MovieEntityDao, category: String
 ): List<Movie> {
     return movieEntityDao.getMovieListByCategory(category).map { it.toMovie(category) }
+}
+
+private suspend fun fetchAndInsertExtraMovieDetails(
+    moviesApiService: MoviesApi,
+    movieEntityDao: MovieEntityDao,
+    movieId: Int,
+) {
+        val getExtraMovieDetailsRemote = moviesApiService.getExtraMovieDetailsById(movieId)
+        val upsertExtraMovieDetailsTable =
+            movieEntityDao.upsertExtraMovieDetails(getExtraMovieDetailsRemote.toExtraMovieDetailsEntity())
 }

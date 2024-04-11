@@ -1,5 +1,6 @@
 package com.example.themovieapp.data.source.remote
 
+import com.example.themovieapp.data.source.remote.dto.extramoviedetails.ExtraMovieDetailsDto
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.data.source.remote.dto.movielist.GenreListDto
 import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
@@ -25,8 +26,21 @@ interface MoviesApi {
     @GET("genre/movie/list")
     suspend fun getGenreList(): GenreListDto
 
+    @Headers(AUTHENTICATION)
     @GET("movie/{movie_id}")
-    suspend fun getMovieById(
+    suspend fun getExtraMovieDetailsById(
+        @Path("movie_id") movieId: Int
+    ): ExtraMovieDetailsDto
+
+    @Headers(AUTHENTICATION)
+    @GET("movie/{movie_id}/credits")
+    suspend fun getCastAndCrew(
+        @Path("movie_id") movieId: Int
+    ): ExtraMovieDetailsDto
+
+    @Headers(AUTHENTICATION)
+    @GET("movie/{movie_id}/recommendations")
+    suspend fun getRecommendationList(
         @Path("movie_id") movieId: Int
     ): MovieListDto
 
@@ -42,6 +56,8 @@ interface MoviesApi {
         @Path("account_id") accountId: Int = ACCOUNT_ID,
         @Body RAW_BODY : FavouriteBody
     ): retrofit2.Response<ResponseBody>
+
+
 
 
 

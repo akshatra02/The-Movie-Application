@@ -40,6 +40,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
+import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
@@ -57,6 +58,7 @@ fun DetailScreen(
         mutableStateOf(TabPage.HOME)
     }
     val movieDetailUiState = viewModel.movieDetailsUiState.collectAsState().value
+    val extraMovieDetailUiState = viewModel.extraMovieDetailsUiState.collectAsState().value
     Scaffold(
         topBar = {
             TopAppBar(
@@ -65,7 +67,10 @@ fun DetailScreen(
         },
         bottomBar = {
             BottomAppBar {
-                BottomTab(navController = navController, tabPage = tabPage, onTabSelected = { tabPage = it})
+                BottomTab(
+                    navController = navController,
+                    tabPage = tabPage,
+                    onTabSelected = { tabPage = it })
             }
 
         }
@@ -76,10 +81,18 @@ fun DetailScreen(
                 .padding(paddingValues),
 
             ) {
+
             movieDetailUiState.movieDetails?.let { movie ->
                 Column {
                     BackDrop(movieDetails = movie, modifier = Modifier.height(500.dp))
-                    MovieContent(movie = movie, onClickFavourite = {viewModel.addMovieToFavourite()}, modifier = Modifier)
+                    MovieContent(
+                        movie = movie,
+                        onClickFavourite = { viewModel.addMovieToFavourite() },
+                        modifier = Modifier
+                    )
+                    extraMovieDetailUiState.extraMovieDetails?.let { extraMovieDetails ->
+                        MoreMovieContent(extraMovieDetails = extraMovieDetails)
+                    }
                 }
             }
         }
@@ -97,7 +110,7 @@ fun BackDrop(
         AsyncImage(
             model = ImageRequest
                 .Builder(context = LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.backdrop_path))
+                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.backdropPath))
                 .crossfade(true)
                 .build(),
             alpha = 0.5f,
@@ -109,7 +122,7 @@ fun BackDrop(
         AsyncImage(
             model = ImageRequest
                 .Builder(context = LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.poster_path))
+                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.posterPath))
                 .crossfade(true)
                 .build(),
 
@@ -124,10 +137,10 @@ fun BackDrop(
 }
 
 @Composable
-fun MovieContent(movie: Movie,onClickFavourite: () -> Unit, modifier: Modifier) {
+fun MovieContent(movie: Movie, onClickFavourite: () -> Unit, modifier: Modifier) {
     val favouriteMovieIcon =
-            if (movie.isFavourite) Icons.Default.Favorite
-            else Icons.Default.FavoriteBorder
+        if (movie.isFavourite) Icons.Default.Favorite
+        else Icons.Default.FavoriteBorder
 
     Column(
         modifier = modifier
@@ -140,12 +153,15 @@ fun MovieContent(movie: Movie,onClickFavourite: () -> Unit, modifier: Modifier) 
                 text = movie.title,
                 style = MaterialTheme.typography.headlineLarge,
             )
-            IconButton(onClick = { onClickFavourite() }, modifier = modifier.align(Alignment.BottomEnd)) {
+            IconButton(
+                onClick = { onClickFavourite() },
+                modifier = modifier.align(Alignment.BottomEnd)
+            ) {
                 Icon(imageVector = favouriteMovieIcon, contentDescription = "")
             }
         }
         Text(
-            text = "${toDate(movie.release_date)} \n ${movie.genre_names}",
+            text = "${toDate(movie.releaseDate)} \n ${movie.genreNames}",
             style = MaterialTheme.typography.titleMedium,
             fontStyle = FontStyle.Italic,
             textAlign = TextAlign.Center,
@@ -164,6 +180,16 @@ fun MovieContent(movie: Movie,onClickFavourite: () -> Unit, modifier: Modifier) 
 
 
     }
+}
 
+@Composable
+fun MoreMovieContent(extraMovieDetails: ExtraMovieDetails) {
+    Column {
+        Text(text = extraMovieDetails.tagline)
+        Text(text = "Budget: ${extraMovieDetails.budget}")
+        Text(text = "Revenue: ${extraMovieDetails.revenue}")
+        Text(text = "Duration: ${extraMovieDetails.runtime}")
+        Text(text = "Status: ${extraMovieDetails.status}")
+    }
 
 }

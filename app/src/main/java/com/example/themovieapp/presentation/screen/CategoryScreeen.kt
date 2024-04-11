@@ -92,8 +92,8 @@ fun CategoryScreen(
                     val movie = categoryUiState.movieList[i]
                     MovieCard(
                         title = movie.title,
-                        date = movie.release_date,
-                        photo = movie.poster_path,
+                        date = movie.releaseDate,
+                        photo = movie.posterPath,
                         moreMovieDetails = {
                             navController.navigate("${Screen.DetailScreen.route}/${movie.id}")
                         })

@@ -52,8 +52,8 @@ fun FavouriteScreen(navController: NavController, viewModel: FavouriteViewModel 
                 val favouriteMovie = favouriteUiState.movieList[index]
                 MovieCard(
                     title = favouriteMovie.title,
-                    date = favouriteMovie.release_date,
-                    photo = favouriteMovie.poster_path,
+                    date = favouriteMovie.releaseDate,
+                    photo = favouriteMovie.posterPath,
                     moreMovieDetails = {
                         navController.navigate("${Screen.DetailScreen.route}/${favouriteMovie.id}")
                     })

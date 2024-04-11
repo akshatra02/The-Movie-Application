@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [MovieEntity::class],
+    entities = [MovieEntity::class, ExtraMovieDetailsEntity::class],
     version = 1
 )
 abstract class MovieDatabase: RoomDatabase() {

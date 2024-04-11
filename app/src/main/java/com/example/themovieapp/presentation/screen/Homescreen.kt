@@ -204,8 +204,8 @@ fun MovieLazyRow(
                 val currentUiState = movieList.get(i)
                 MovieCard(
                     title = currentUiState.title,
-                    date = currentUiState.release_date,
-                    photo = currentUiState.poster_path,
+                    date = currentUiState.releaseDate,
+                    photo = currentUiState.posterPath,
                     moreMovieDetails = {
                         navController.navigate("${Screen.DetailScreen.route}/${currentUiState.id}")
                     },

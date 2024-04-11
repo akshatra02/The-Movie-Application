@@ -24,33 +24,36 @@ data class MovieEntity(
     @ColumnInfo(name = "title")  val title: String,
     @ColumnInfo(name = "video")  val video: Boolean,
     @ColumnInfo(name = "vote_average")  val voteAverage: Double,
-    @ColumnInfo(name = "vote_count")  val voteCount: Int
+    @ColumnInfo(name = "vote_count")  val voteCount: Int,
+    @ColumnInfo(name = "has_more_info")  val hasMoreInfo: Boolean = false,
 ){
     fun toMovie(
         category: String
     ): Movie{
         return Movie(
             adult = adult ,
-            backdrop_path = backdropPath,
-            original_language = originalLanguage ,
-            original_title = originalTitle,
+            backdropPath = backdropPath,
+            originalLanguage = originalLanguage ,
+            originalTitle = originalTitle,
             overview = overview ,
             popularity = popularity ,
-            poster_path = posterPath,
-            release_date = releaseDate,
+            posterPath = posterPath,
+            releaseDate = releaseDate,
             title = title,
             video = video,
-            vote_average = voteAverage,
-            vote_count = voteCount,
+            voteAverage = voteAverage,
+            voteCount = voteCount,
             id = id,
             category = category,
-            genre_ids = try {
+            genreIds = try {
                 genreIds.split(",").map { it.toInt() }
             }catch (e : Exception){
                 listOf(-1,-2)
             },
-            genre_names = genreNames.split(","),
-            isFavourite = isFavourite
+            genreNames = genreNames.split(","),
+            isFavourite = isFavourite,
+            hasMoreInfo  = hasMoreInfo,
+
 
         )
     }

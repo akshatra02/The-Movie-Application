@@ -154,7 +154,7 @@ fun MovieListItem(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(movie.poster_path))
+                .data(MoviesApi.IMAGE_BASE_URL.plus(movie.posterPath))
                 .crossfade(true)
                 .build(),
             contentDescription = null,

@@ -4,6 +4,7 @@ plugins {
     id ("com.android.application")
     id("kotlin-kapt")
     id ("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
     id ("kotlin-parcelize")
 }
 

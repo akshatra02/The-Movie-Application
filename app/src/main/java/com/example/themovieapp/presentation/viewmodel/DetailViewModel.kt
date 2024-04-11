@@ -3,18 +3,23 @@ package com.example.themovieapp.presentation.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.themovieapp.data.source.remote.dto.extramoviedetails.ExtraMovieDetailsDto
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
+import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
+import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.usecase.FavouriteMoviesUseCase
 import com.example.themovieapp.domain.usecase.GetMovieByIdUseCase
 import com.example.themovieapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 @HiltViewModel
 class MovieDetailsViewModel @Inject constructor(
@@ -26,10 +31,44 @@ class MovieDetailsViewModel @Inject constructor(
     private val _movieDetailsUiState = MutableStateFlow(MovieDetailUiState())
     val movieDetailsUiState = _movieDetailsUiState.asStateFlow()
 
+    private val _extraMovieDetailsUiState = MutableStateFlow(ExtraMovieDetailUiState())
+    val extraMovieDetailsUiState = _extraMovieDetailsUiState.asStateFlow()
+
+
     val movieId = savedStateHandle.get<Int>("movieId")
 
     init {
         getMoviesById(movieId ?: -1)
+        addExtraMovieDetails()
+    }
+
+    fun addExtraMovieDetails(){
+        viewModelScope.launch {
+            if (movieId != null) {
+              getMovieByIdUseCase.addExtraMovieDetails(movieId).collectLatest { result ->
+                  when(result){
+                      is Resource.Error -> {
+                          _extraMovieDetailsUiState.update {
+                              it.copy(isLoading = true)
+                          }
+                      }
+                      is Resource.Loading -> {
+                          _extraMovieDetailsUiState.update {
+                              it.copy(isLoading = extraMovieDetailsUiState.value.isLoading)
+                          }
+                      }
+                      is Resource.Success -> {
+                          _extraMovieDetailsUiState.update {
+                              it.copy(
+                                  extraMovieDetails = result.data
+                              )
+                          }
+                      }
+                  }
+
+              }
+            }
+        }
     }
     fun addMovieToFavourite() {
         viewModelScope.launch {
@@ -137,4 +176,8 @@ data class MovieDetailUiState(
     val movieDetails: Movie? = null,
     val isLoading: Boolean = true,
     val isFavourite: Boolean = false
+)
+data class ExtraMovieDetailUiState(
+    val extraMovieDetails: ExtraMovieDetails? = null,
+    val isLoading: Boolean = true,
 )

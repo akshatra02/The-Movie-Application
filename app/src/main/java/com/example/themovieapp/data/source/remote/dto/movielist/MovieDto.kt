@@ -1,30 +1,34 @@
 package com.example.themovieapp.data.source.remote.dto.movielist
 
 import com.example.themovieapp.data.source.local.room.moviedetails.MovieEntity
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
+
+@Serializable
 
 data class MovieDto(
 
     val adult: Boolean?,
-    @SerialName("backdrop_path") val backdropPath: String?,
-    @SerialName("genre_ids") val genreIds: List<Int>?,
-    @SerialName("genre_names")val genreNames: List<String>?,
-    @SerialName("original_language")val originalLanguage: String?,
-    @SerialName("original_title") val originalTitle: String?,
+    @SerializedName (value = "backdrop_path") val backdropPath: String?,
+    @SerializedName (value = "genre_ids") val genreIds: List<Int>?,
+    @SerializedName (value = "genre_names") val genreNames: List<String>?,
+    @SerializedName (value = "original_language") val originalLanguage: String?,
+    @SerializedName (value = "original_title") val originalTitle: String?,
     val overview: String?,
     val popularity: Double?,
-    @SerialName("poster_path")  val posterPath: String?,
-    @SerialName("release_date") val releaseDate: String?,
+    @SerializedName (value = "poster_path") val posterPath: String?,
+    @SerializedName (value = "release_date") val releaseDate: String?,
     val title: String?,
-    val video: Boolean?,
-    @SerialName("vote_average") val voteAverage: Double?,
-    @SerialName("vote_count") val voteCount: Int?,
+     val video: Boolean?,
+    @SerializedName (value = "vote_average") val voteAverage: Double?,
+    @SerializedName (value = "vote_count") val voteCount: Int?,
     val id: Int?,
     val category: String,
     val isFavourite: Boolean,
+    val hasMoreInfo: Boolean,
 
-    ){
-    fun toMovieEntity(category: String, genreNames: String, isFavourite: Boolean): MovieEntity {
+    ) {
+    fun toMovieEntity(category: String, genreNames: String, isFavourite: Boolean, hasMoreInfo:Boolean = false): MovieEntity {
         return MovieEntity(
             adult = adult ?: false,
             backdropPath = backdropPath ?: "",
@@ -38,15 +42,16 @@ data class MovieDto(
             video = video ?: false,
             voteAverage = voteAverage ?: 0.0,
             voteCount = voteCount ?: 0,
-            id = id ?: 0 ,
+            id = id ?: 0,
             category = category,
             genreIds = try {
                 genreIds?.joinToString { "," } ?: "-1,-2"
-            }catch (e : Exception){
+            } catch (e: Exception) {
                 "-1,-2"
             },
             genreNames = genreNames,
-            isFavourite = isFavourite
+            isFavourite = isFavourite,
+            hasMoreInfo = hasMoreInfo
 
 
         )
