@@ -25,7 +25,6 @@ data class MovieEntity(
     @ColumnInfo(name = "video")  val video: Boolean,
     @ColumnInfo(name = "vote_average")  val voteAverage: Double,
     @ColumnInfo(name = "vote_count")  val voteCount: Int,
-    @ColumnInfo(name = "has_more_info")  val hasMoreInfo: Boolean = false,
 ){
     fun toMovie(
         category: String
@@ -52,7 +51,6 @@ data class MovieEntity(
             },
             genreNames = genreNames.split(","),
             isFavourite = isFavourite,
-            hasMoreInfo  = hasMoreInfo,
 
 
         )

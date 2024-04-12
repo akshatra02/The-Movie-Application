@@ -5,6 +5,7 @@ import com.example.themovieapp.data.source.local.room.moviedetails.MovieEntityDa
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.data.source.remote.dto.movielist.GenreDto
+import com.example.themovieapp.data.source.remote.dto.movielist.MovieDto
 import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
 import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
@@ -21,12 +22,12 @@ class DefaultMovieRepository @Inject constructor(
     val moviesApiService: MoviesApi,
 ) : MovieRepository {
 
-    override suspend fun addExtraMovieDetails(id: Int): Flow<Resource<ExtraMovieDetails>> = flow {
+    override fun addExtraMovieDetails(id: Int): Flow<Resource<ExtraMovieDetails>> = flow {
 
         val hasExtraMovieDetails = movieEntityDao.getExtraMovieDetailsById(id)
         if (hasExtraMovieDetails == null) {
             try {
-               fetchAndInsertExtraMovieDetails(moviesApiService, movieEntityDao, id)
+                fetchAndInsertExtraMovieDetails(moviesApiService, movieEntityDao, id)
             } catch (e: HttpException) {
                 emit(Resource.Error("Oops Something went wrong! Try again later."))
                 return@flow
@@ -74,6 +75,7 @@ class DefaultMovieRepository @Inject constructor(
         emit(Resource.Loading())
         try {
             val getMovieById = movieEntityDao.getMovieById(id)
+            Log.d("P", getMovieById.category)
             emit(Resource.Success(getMovieById.toMovie(getMovieById.category)))
             return@flow
         } catch (e: HttpException) {
@@ -99,8 +101,8 @@ class DefaultMovieRepository @Inject constructor(
         emit(Resource.Loading(true))
         try {
             emit(
-                Resource.Success(movieEntityDao.getFavouriteMovies()
-                    .map { it.toMovie(it.category) })
+                Resource.Success(
+                    movieEntityDao.getFavouriteMovies().map { it.toMovie(it.category) })
             )
             return@flow
 
@@ -188,7 +190,36 @@ private suspend fun fetchAndInsertExtraMovieDetails(
     movieEntityDao: MovieEntityDao,
     movieId: Int,
 ) {
-        val getExtraMovieDetailsRemote = moviesApiService.getExtraMovieDetailsById(movieId)
-        val upsertExtraMovieDetailsTable =
-            movieEntityDao.upsertExtraMovieDetails(getExtraMovieDetailsRemote.toExtraMovieDetailsEntity())
+    val getExtraMovieDetailsRemote = moviesApiService.getExtraMovieDetailsById(movieId)
+    val getRecommendationList = moviesApiService.getRecommendationList(movieId)
+    val recommendedMovieListIds = mutableListOf<Int>()
+    getRecommendationList.results.map { recommendedMovieListIds.add(it.id ?: -1) }
+    recommendedMovieListIds.forEach {
+        fetchAndInsertMovie(moviesApiService,movieEntityDao,it)
+    }
+    Log.d("AAA", recommendedMovieListIds.toString())
+    val upsertExtraMovieDetailsTable =
+        movieEntityDao.upsertExtraMovieDetails(
+            getExtraMovieDetailsRemote.toExtraMovieDetailsEntity(
+                recommendedMovieListIds
+            )
+        )
+}
+
+private suspend fun fetchAndInsertMovie(
+    moviesApiService: MoviesApi,
+    movieEntityDao: MovieEntityDao,
+    movieId: Int,
+){
+    val movie = moviesApiService.getExtraMovieDetailsById(movieId)
+
+    val genreNames = movie.genres?.map { it.name }?.toList() ?: emptyList()
+    val genreIds = movie.genres?.map { it.id }?.toList() ?: emptyList()
+    val movieEntity = movie.toMovieEntity(
+        "",
+        genreNames.toString(),
+        genreIds.toString(),
+        movie.isFavourite,
+    )
+    movieEntityDao.upsertMovie(movieEntity)
 }

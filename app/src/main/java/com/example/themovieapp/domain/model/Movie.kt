@@ -18,5 +18,4 @@ data class Movie (
         val id: Int,
         val category: String,
         val isFavourite: Boolean,
-        val hasMoreInfo: Boolean,
 )

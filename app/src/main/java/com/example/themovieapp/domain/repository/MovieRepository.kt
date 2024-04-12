@@ -18,6 +18,8 @@ interface MovieRepository {
 
      fun addMovieToFavouriteStream(movie: FavouriteBody): Flow<Resource<Movie>>
 
-     suspend fun addExtraMovieDetails(id: Int): Flow<Resource<ExtraMovieDetails>>
+     fun addExtraMovieDetails(id: Int): Flow<Resource<ExtraMovieDetails>>
+
+//     fun getRecommendationList
 
 }

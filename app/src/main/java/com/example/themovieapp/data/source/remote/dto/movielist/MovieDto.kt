@@ -5,7 +5,6 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 
 @Serializable
-
 data class MovieDto(
 
     val adult: Boolean?,
@@ -25,10 +24,9 @@ data class MovieDto(
     val id: Int?,
     val category: String,
     val isFavourite: Boolean,
-    val hasMoreInfo: Boolean,
 
     ) {
-    fun toMovieEntity(category: String, genreNames: String, isFavourite: Boolean, hasMoreInfo:Boolean = false): MovieEntity {
+    fun toMovieEntity(category: String, genreNames: String, isFavourite: Boolean): MovieEntity {
         return MovieEntity(
             adult = adult ?: false,
             backdropPath = backdropPath ?: "",
@@ -45,16 +43,12 @@ data class MovieDto(
             id = id ?: 0,
             category = category,
             genreIds = try {
-                genreIds?.joinToString { "," } ?: "-1,-2"
+                genreIds.toString()
             } catch (e: Exception) {
                 "-1,-2"
             },
             genreNames = genreNames,
             isFavourite = isFavourite,
-            hasMoreInfo = hasMoreInfo
-
-
         )
-
     }
 }

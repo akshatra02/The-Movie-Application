@@ -13,6 +13,9 @@ interface MovieEntityDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMovieList(movie: List<MovieEntity>)
 
+    @Upsert
+    suspend fun upsertMovie(movie: MovieEntity)
+
     @Query("SELECT * FROM movie_table WHERE category = :category")
     suspend fun getMovieListByCategory(category: String): List<MovieEntity>
 

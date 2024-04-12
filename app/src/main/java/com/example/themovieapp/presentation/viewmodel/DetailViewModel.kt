@@ -34,6 +34,9 @@ class MovieDetailsViewModel @Inject constructor(
     private val _extraMovieDetailsUiState = MutableStateFlow(ExtraMovieDetailUiState())
     val extraMovieDetailsUiState = _extraMovieDetailsUiState.asStateFlow()
 
+    private val _recommendedMovieListUiState = MutableStateFlow(MovieUiState())
+    val recommendedMovieListUiState = _recommendedMovieListUiState.asStateFlow()
+
 
     val movieId = savedStateHandle.get<Int>("movieId")
 
@@ -42,34 +45,64 @@ class MovieDetailsViewModel @Inject constructor(
         addExtraMovieDetails()
     }
 
-    fun addExtraMovieDetails(){
+    fun addExtraMovieDetails() {
         viewModelScope.launch {
             if (movieId != null) {
-              getMovieByIdUseCase.addExtraMovieDetails(movieId).collectLatest { result ->
-                  when(result){
-                      is Resource.Error -> {
-                          _extraMovieDetailsUiState.update {
-                              it.copy(isLoading = true)
-                          }
-                      }
-                      is Resource.Loading -> {
-                          _extraMovieDetailsUiState.update {
-                              it.copy(isLoading = extraMovieDetailsUiState.value.isLoading)
-                          }
-                      }
-                      is Resource.Success -> {
-                          _extraMovieDetailsUiState.update {
-                              it.copy(
-                                  extraMovieDetails = result.data
-                              )
-                          }
-                      }
-                  }
+                getMovieByIdUseCase.addExtraMovieDetails(movieId).collectLatest { result ->
+                    when (result) {
+                        is Resource.Error -> {
+                            _extraMovieDetailsUiState.update {
+                                it.copy(isLoading = true)
+                            }
+                        }
 
-              }
+                        is Resource.Loading -> {
+                            _extraMovieDetailsUiState.update {
+                                it.copy(isLoading = extraMovieDetailsUiState.value.isLoading)
+                            }
+                        }
+
+                        is Resource.Success -> result.data?.let { movie ->
+                            _extraMovieDetailsUiState.update {
+                                it.copy(
+                                    extraMovieDetails = movie
+                                )
+                            }
+                            val listOfRecommendationMovies = movie.recommendationMoviesList
+                            for (recommendedMovie in listOfRecommendationMovies) {
+                                getMovieByIdUseCase(recommendedMovie).collectLatest { result ->
+                                    when (result) {
+                                        is Resource.Error -> {
+                                            _recommendedMovieListUiState.update {
+                                                it.copy(isLoading = true)
+                                            }
+                                        }
+
+                                        is Resource.Loading -> {
+                                            _recommendedMovieListUiState.update {
+                                                it.copy(isLoading = _recommendedMovieListUiState.value.isLoading)
+                                            }
+                                        }
+
+                                        is Resource.Success -> result.data?.let { movie ->
+                                            _recommendedMovieListUiState.update {
+                                                it.copy(
+                                                    movieList = recommendedMovieListUiState.value.movieList + movie
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+
+                    }
+                }
             }
         }
     }
+
     fun addMovieToFavourite() {
         viewModelScope.launch {
             val currentMovie = movieDetailsUiState.value.movieDetails
@@ -86,46 +119,44 @@ class MovieDetailsViewModel @Inject constructor(
 
     fun updateMovieFavouriteStatus(movie: Movie) {
         viewModelScope.launch {
-            val favouriteBody =
-                FavouriteBody(
-                    favorite = movie.isFavourite,
-                    media_id = movie.id,
-                    media_type = "movie"
-                )
-            favouriteMoviesUseCase.addMovieToFavouriteStream(favouriteBody).collectLatest { result ->
-                when (result) {
-                    is Resource.Error -> {
-                        _movieDetailsUiState.update {
-                            it.copy(
-                                isLoading = false
-
-                            )
-                        }
-                    }
-
-                    is Resource.Loading -> {
-                        _movieDetailsUiState.update {
-                            it.copy(
-                                isLoading = true
-                            )
-                        }
-                    }
-
-                    is Resource.Success -> {
-                        result.data?.let { movie ->
+            val favouriteBody = FavouriteBody(
+                favorite = movie.isFavourite, media_id = movie.id, media_type = "movie"
+            )
+            favouriteMoviesUseCase.addMovieToFavouriteStream(favouriteBody)
+                .collectLatest { result ->
+                    when (result) {
+                        is Resource.Error -> {
                             _movieDetailsUiState.update {
-                                it.copy(movieDetails = movie)
+                                it.copy(
+                                    isLoading = false
+
+                                )
                             }
                         }
-                        _movieDetailsUiState.update {
-                            it.copy(
-                                isLoading = false
-                            )
+
+                        is Resource.Loading -> {
+                            _movieDetailsUiState.update {
+                                it.copy(
+                                    isLoading = true
+                                )
+                            }
+                        }
+
+                        is Resource.Success -> {
+                            result.data?.let { movie ->
+                                _movieDetailsUiState.update {
+                                    it.copy(movieDetails = movie)
+                                }
+                            }
+                            _movieDetailsUiState.update {
+                                it.copy(
+                                    isLoading = false
+                                )
+                            }
                         }
                     }
-                }
 
-            }
+                }
 
         }
     }
@@ -173,10 +204,9 @@ class MovieDetailsViewModel @Inject constructor(
 }
 
 data class MovieDetailUiState(
-    val movieDetails: Movie? = null,
-    val isLoading: Boolean = true,
-    val isFavourite: Boolean = false
+    val movieDetails: Movie? = null, val isLoading: Boolean = true, val isFavourite: Boolean = false
 )
+
 data class ExtraMovieDetailUiState(
     val extraMovieDetails: ExtraMovieDetails? = null,
     val isLoading: Boolean = true,
