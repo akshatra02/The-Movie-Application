@@ -1,4 +1,4 @@
-package com.example.themovieapp.data.source.local.room.moviedetails
+package com.example.themovieapp.data.source.local.room.moviedetails.entity
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -27,7 +27,7 @@ data class MovieEntity(
     @ColumnInfo(name = "vote_count")  val voteCount: Int,
 ){
     fun toMovie(
-        category: String
+        category: String = ""
     ): Movie{
         return Movie(
             adult = adult ,

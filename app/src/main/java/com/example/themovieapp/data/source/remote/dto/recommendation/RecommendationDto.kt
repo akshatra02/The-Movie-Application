@@ -1,4 +1,4 @@
-package com.example.themovieapp.data.source.remote.dto
+package com.example.themovieapp.data.source.remote.dto.recommendation
 
 data class RecommendationDto(
     val adult: Boolean?,

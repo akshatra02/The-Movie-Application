@@ -1,9 +1,7 @@
 package com.example.themovieapp.data.source.remote.dto.extramoviedetails
 
-import com.example.themovieapp.data.source.local.room.moviedetails.ExtraMovieDetailsEntity
-import com.example.themovieapp.data.source.local.room.moviedetails.MovieEntity
-import com.google.gson.Gson
-import com.google.gson.JsonObject
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.ExtraMovieDetailsEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
 import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 

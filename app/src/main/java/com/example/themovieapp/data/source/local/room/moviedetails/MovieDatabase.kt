@@ -4,9 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.CastAndCrewEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.ExtraMovieDetailsEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
 
 @Database(
-    entities = [MovieEntity::class, ExtraMovieDetailsEntity::class],
+    entities = [MovieEntity::class, ExtraMovieDetailsEntity::class, CastAndCrewEntity::class],
     version = 1
 )
 abstract class MovieDatabase: RoomDatabase() {

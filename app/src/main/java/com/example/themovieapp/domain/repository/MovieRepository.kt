@@ -3,6 +3,7 @@ package com.example.themovieapp.domain.repository
 
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
+import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.utils.Resource
@@ -20,6 +21,6 @@ interface MovieRepository {
 
      fun addExtraMovieDetails(id: Int): Flow<Resource<ExtraMovieDetails>>
 
-//     fun getRecommendationList
+     fun getCastAndCrewStream(id: Int): Flow<Resource<List<CastAndCrew>>>
 
 }

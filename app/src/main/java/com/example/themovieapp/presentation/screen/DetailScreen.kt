@@ -46,6 +46,7 @@ import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
 import com.example.themovieapp.presentation.components.MovieCard
+import com.example.themovieapp.presentation.components.PersonCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
 import com.example.themovieapp.utils.TabPage
@@ -64,6 +65,7 @@ fun DetailScreen(
     val movieDetailUiState = viewModel.movieDetailsUiState.collectAsState().value
     val extraMovieDetailUiState = viewModel.extraMovieDetailsUiState.collectAsState().value
     val recommendedMovieListUiState = viewModel.recommendedMovieListUiState.collectAsState().value
+    val castAndCrewListUiState = viewModel.castAndCrewListUiState.collectAsState().value
     Scaffold(
         topBar = {
             TopAppBar(
@@ -99,6 +101,15 @@ fun DetailScreen(
                         MoreMovieContent(extraMovieDetails = extraMovieDetails)
                     }
                     LazyRow {
+                        items(castAndCrewListUiState.castAndCrew.size) {index ->
+                            val castAndCrew = castAndCrewListUiState.castAndCrew[index]
+                            PersonCard(title = castAndCrew.name, role = castAndCrew.role, photo = castAndCrew.profilePath) {
+
+                            }
+                        }
+                    }
+                }
+                    LazyRow {
                         items(recommendedMovieListUiState.movieList.size) {index ->
                             val recommendedMovie = recommendedMovieListUiState.movieList[index]
                             MovieCard(title = recommendedMovie.title, date = recommendedMovie.releaseDate, photo = recommendedMovie.posterPath, moreMovieDetails = {
@@ -106,14 +117,13 @@ fun DetailScreen(
                                 navController.navigate("${Screen.DetailScreen.route}/${recommendedMovie.id}")
 
                             })
-
                             }
                         }
                     }
                 }
             }
         }
-    }
+
 
 @Composable
 fun BackDrop(
@@ -177,7 +187,7 @@ fun MovieContent(movie: Movie, onClickFavourite: () -> Unit, modifier: Modifier)
             }
         }
         Text(
-            text = "${toDate(movie.releaseDate)} \n ${movie.genreNames}",
+            text = "${toDate(movie.releaseDate)} \n ${movie.genreNames} \n ${movie.voteAverage}",
             style = MaterialTheme.typography.titleMedium,
             fontStyle = FontStyle.Italic,
             textAlign = TextAlign.Center,

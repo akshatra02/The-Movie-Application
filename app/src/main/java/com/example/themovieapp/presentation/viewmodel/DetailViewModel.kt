@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.themovieapp.data.source.remote.dto.extramoviedetails.ExtraMovieDetailsDto
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
+import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.usecase.FavouriteMoviesUseCase
@@ -36,6 +37,9 @@ class MovieDetailsViewModel @Inject constructor(
 
     private val _recommendedMovieListUiState = MutableStateFlow(MovieUiState())
     val recommendedMovieListUiState = _recommendedMovieListUiState.asStateFlow()
+
+    private val _castAndCrewListUiState = MutableStateFlow(CastAndCrewListUiState())
+    val castAndCrewListUiState = _castAndCrewListUiState.asStateFlow()
 
 
     val movieId = savedStateHandle.get<Int>("movieId")
@@ -94,6 +98,30 @@ class MovieDetailsViewModel @Inject constructor(
                                     }
 
                                 }
+                            }
+                            getMovieByIdUseCase.getCastAndCrewStream(movieId).collectLatest { result ->
+                                 when(result){
+                                     is Resource.Error -> {
+                                         _castAndCrewListUiState.update {
+                                             it.copy(isLoading = true)
+                                         }
+                                     }
+
+                                     is Resource.Loading -> {
+                                         _castAndCrewListUiState.update {
+                                             it.copy(isLoading = castAndCrewListUiState.value.isLoading)
+                                         }
+                                     }
+
+                                     is Resource.Success -> result.data?.let { castAndCrew ->
+                                         _castAndCrewListUiState.update {
+                                             it.copy(
+                                                 castAndCrew  = _castAndCrewListUiState.value.castAndCrew + castAndCrew,
+                                                 isLoading = false
+                                             )
+                                         }
+                                     }
+                                 }
                             }
                         }
 
@@ -211,3 +239,9 @@ data class ExtraMovieDetailUiState(
     val extraMovieDetails: ExtraMovieDetails? = null,
     val isLoading: Boolean = true,
 )
+
+data class CastAndCrewListUiState(
+    val castAndCrew: List<CastAndCrew> = emptyList(),
+    val isLoading: Boolean = true,
+
+    )

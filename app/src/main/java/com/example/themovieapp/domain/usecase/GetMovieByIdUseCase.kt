@@ -1,6 +1,7 @@
 package com.example.themovieapp.domain.usecase
 
 import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
+import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.repository.MovieRepository
@@ -15,7 +16,13 @@ class GetMovieByIdUseCase @Inject constructor(
         return movieRepository.getMovieByIdStream(id)
     }
 
-   suspend fun addExtraMovieDetails(id: Int): Flow<Resource<ExtraMovieDetails>> {
+    fun addExtraMovieDetails(id: Int): Flow<Resource<ExtraMovieDetails>> {
         return movieRepository.addExtraMovieDetails(id)
     }
+
+    fun getCastAndCrewStream(id: Int): Flow<Resource<List<CastAndCrew>>> {
+        return movieRepository.getCastAndCrewStream(id)
+    }
+
+
 }

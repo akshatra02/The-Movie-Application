@@ -1,6 +1,6 @@
 package com.example.themovieapp.data.source.remote.dto.movielist
 
-import com.example.themovieapp.data.source.local.room.moviedetails.MovieEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
 import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 

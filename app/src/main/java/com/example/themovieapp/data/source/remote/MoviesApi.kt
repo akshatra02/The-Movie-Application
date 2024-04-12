@@ -1,5 +1,6 @@
 package com.example.themovieapp.data.source.remote
 
+import com.example.themovieapp.data.source.remote.dto.castandcrew.CastAndCrewDto
 import com.example.themovieapp.data.source.remote.dto.extramoviedetails.ExtraMovieDetailsDto
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.data.source.remote.dto.movielist.GenreListDto
@@ -36,7 +37,7 @@ interface MoviesApi {
     @GET("movie/{movie_id}/credits")
     suspend fun getCastAndCrew(
         @Path("movie_id") movieId: Int
-    ): ExtraMovieDetailsDto
+    ): CastAndCrewDto
 
     @Headers(AUTHENTICATION)
     @GET("movie/{movie_id}/recommendations")

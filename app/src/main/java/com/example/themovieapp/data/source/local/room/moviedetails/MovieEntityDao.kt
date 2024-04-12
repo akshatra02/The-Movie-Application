@@ -6,7 +6,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
-import com.example.themovieapp.domain.model.ExtraMovieDetails
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.CastAndCrewEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.ExtraMovieDetailsEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
 
 @Dao
 interface MovieEntityDao {
@@ -37,4 +39,14 @@ interface MovieEntityDao {
 
     @Query("SELECT * FROM extra_movie_details_table WHERE movie_id = :id")
     suspend fun getExtraMovieDetailsById(id : Int): ExtraMovieDetailsEntity?
+
+    @Upsert
+    suspend fun insertCastAndCrew(castAndCrewEntity: CastAndCrewEntity)
+
+    @Query("SELECT * FROM cast_and_crew_table WHERE movie_id = :id")
+    suspend fun getCastByMovieId(id: Int):List<CastAndCrewEntity>
+
+
+
+
 }
