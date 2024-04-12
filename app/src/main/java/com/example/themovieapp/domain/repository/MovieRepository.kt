@@ -6,8 +6,10 @@ import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
 import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
+import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.utils.Resource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 interface MovieRepository {
     fun getMoviesByCategoryStream(category: String,forceFetchFromRemote: Boolean, page: Int): Flow<Resource<List<Movie>>>
@@ -22,5 +24,7 @@ interface MovieRepository {
      fun addExtraMovieDetails(id: Int): Flow<Resource<ExtraMovieDetails>>
 
      fun getCastAndCrewStream(id: Int): Flow<Resource<List<CastAndCrew>>>
+
+     fun getMovieReviewStream(id: Int): Flow<Resource<List<Review>>>
 
 }

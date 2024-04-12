@@ -9,6 +9,7 @@ import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
 import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
+import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.domain.usecase.FavouriteMoviesUseCase
 import com.example.themovieapp.domain.usecase.GetMovieByIdUseCase
 import com.example.themovieapp.utils.Resource
@@ -40,6 +41,9 @@ class MovieDetailsViewModel @Inject constructor(
 
     private val _castAndCrewListUiState = MutableStateFlow(CastAndCrewListUiState())
     val castAndCrewListUiState = _castAndCrewListUiState.asStateFlow()
+
+    private val _reviewListUiState = MutableStateFlow(ReviewListUiState())
+    val reviewListUiState = _reviewListUiState.asStateFlow()
 
 
     val movieId = savedStateHandle.get<Int>("movieId")
@@ -122,6 +126,30 @@ class MovieDetailsViewModel @Inject constructor(
                                          }
                                      }
                                  }
+                            }
+                            getMovieByIdUseCase.getMovieReviewStream(movieId).collectLatest { result ->
+                                when(result){
+                                    is Resource.Error -> {
+                                        _reviewListUiState.update {
+                                            it.copy(isLoading = true)
+                                        }
+                                    }
+
+                                    is Resource.Loading -> {
+                                        _reviewListUiState.update {
+                                            it.copy(isLoading = reviewListUiState.value.isLoading)
+                                        }
+                                    }
+
+                                    is Resource.Success -> result.data?.let { review ->
+                                        _reviewListUiState.update {
+                                            it.copy(
+                                                review  = _reviewListUiState.value.review + review,
+                                                isLoading = false
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -242,6 +270,12 @@ data class ExtraMovieDetailUiState(
 
 data class CastAndCrewListUiState(
     val castAndCrew: List<CastAndCrew> = emptyList(),
+    val isLoading: Boolean = true,
+
+    )
+
+data class ReviewListUiState(
+    val review: List<Review> = emptyList(),
     val isLoading: Boolean = true,
 
     )

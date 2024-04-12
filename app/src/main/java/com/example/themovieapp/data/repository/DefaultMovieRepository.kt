@@ -8,6 +8,7 @@ import com.example.themovieapp.data.source.remote.dto.movielist.GenreDto
 import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
+import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.domain.repository.MovieRepository
 import com.example.themovieapp.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -37,12 +38,34 @@ class DefaultMovieRepository @Inject constructor(
             }
         }
         getCastAndCrew(moviesApiService, movieEntityDao, id)
+        getMovieReview(moviesApiService, movieEntityDao, id)
         emit(
             Resource.Success(
                 movieEntityDao.getExtraMovieDetailsById(id)?.toExtraMovieDetails()
             )
         )
         return@flow
+    }
+    override fun getMovieReviewStream(id: Int): Flow<Resource<List<Review>>> = flow {
+
+        val hasCastAndCrewLocal = movieEntityDao.getCastByMovieId(id)
+        if (hasCastAndCrewLocal.isEmpty()) {
+            try {
+                getCastAndCrew(moviesApiService, movieEntityDao, id)
+
+            } catch (e: HttpException) {
+                emit(Resource.Error("Oops Something went wrong! Try again later."))
+                return@flow
+            } catch (e: IOException) {
+                emit(Resource.Error("Couldn't reach server. Check your internet connection"))
+                return@flow
+            }
+        }
+        emit(
+            Resource.Success(movieEntityDao.getMovieReviewById(id).map { it.toReview() })
+        )
+        return@flow
+
     }
 
     override fun getCastAndCrewStream(id: Int): Flow<Resource<List<CastAndCrew>>> = flow {
@@ -61,7 +84,7 @@ class DefaultMovieRepository @Inject constructor(
             }
         }
         emit(
-            Resource.Success( movieEntityDao.getCastByMovieId(id).map { it.toCastAndCrew() })
+            Resource.Success(movieEntityDao.getCastByMovieId(id).map { it.toCastAndCrew() })
         )
         return@flow
 
@@ -164,6 +187,21 @@ class DefaultMovieRepository @Inject constructor(
     }
 }
 
+
+private suspend fun getMovieReview(
+    moviesApiService: MoviesApi,
+    movieEntityDao: MovieEntityDao,
+    movieId: Int
+): List<Review> {
+    val isReviewLocal = movieEntityDao.getMovieReviewById(movieId)
+    if (isReviewLocal.isEmpty()){
+        val review = moviesApiService.getReviewsById(movieId)
+        review.results
+        movieEntityDao.insertMovieReview(review.results.map { it.toReviewEntity(movieId) })
+    }
+    return movieEntityDao.getMovieReviewById(movieId).map { it.toReview() }
+}
+
 private suspend fun addMovieToFavouriteRemote(
     moviesApiService: MoviesApi, movieEntityDao: MovieEntityDao, movie: FavouriteBody
 ): Movie {
@@ -220,7 +258,7 @@ private suspend fun fetchAndInsertExtraMovieDetails(
     recommendedMovieListIds.forEach {
         fetchAndInsertMovie(moviesApiService, movieEntityDao, it)
     }
-    Log.d("AAA", recommendedMovieListIds.toString())
+    Log.d("AAA", moviesApiService.getReviewsById(movieId).results.toString())
     val upsertExtraMovieDetailsTable = movieEntityDao.upsertExtraMovieDetails(
         getExtraMovieDetailsRemote.toExtraMovieDetailsEntity(
             recommendedMovieListIds

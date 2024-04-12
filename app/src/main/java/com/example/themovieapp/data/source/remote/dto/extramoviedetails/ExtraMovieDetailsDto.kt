@@ -8,13 +8,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ExtraMovieDetailsDto(
     val id: Int?,
-    val budget: Int?,
+    val budget: Long?,
     val genres: List<Genre>?,
     val homepage: String?,
     @SerializedName(value = "imdb_id")  val imdbId: String?,
     @SerializedName(value = "original_language") val originalLanguage: String?,
     @SerializedName(value = "original_title")  val originalTitle: String?,
-    val revenue: Int?,
+    val revenue: Long?,
     val runtime: Int?,
     val status: String?,
     val tagline: String?,

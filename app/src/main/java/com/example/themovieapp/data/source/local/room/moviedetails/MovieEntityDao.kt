@@ -9,6 +9,7 @@ import androidx.room.Upsert
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.CastAndCrewEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.ExtraMovieDetailsEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.ReviewEntity
 
 @Dao
 interface MovieEntityDao {
@@ -45,6 +46,12 @@ interface MovieEntityDao {
 
     @Query("SELECT * FROM cast_and_crew_table WHERE movie_id = :id")
     suspend fun getCastByMovieId(id: Int):List<CastAndCrewEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMovieReview(reviewList: List<ReviewEntity>)
+
+    @Query("SELECT * FROM review_table WHERE movie_id = :id")
+    suspend fun getMovieReviewById(id: Int):List<ReviewEntity>
 
 
 

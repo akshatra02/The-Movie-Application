@@ -4,6 +4,7 @@ import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
 import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
+import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.domain.repository.MovieRepository
 import com.example.themovieapp.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,9 @@ class GetMovieByIdUseCase @Inject constructor(
 
     fun getCastAndCrewStream(id: Int): Flow<Resource<List<CastAndCrew>>> {
         return movieRepository.getCastAndCrewStream(id)
+    }
+    fun getMovieReviewStream(id: Int): Flow<Resource<List<Review>>> {
+        return movieRepository.getMovieReviewStream(id)
     }
 
 

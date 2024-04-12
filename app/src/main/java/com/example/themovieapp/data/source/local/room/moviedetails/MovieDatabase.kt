@@ -7,30 +7,32 @@ import androidx.room.RoomDatabase
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.CastAndCrewEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.ExtraMovieDetailsEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.ReviewEntity
 
 @Database(
-    entities = [MovieEntity::class, ExtraMovieDetailsEntity::class, CastAndCrewEntity::class],
+    entities = [
+        MovieEntity::class,
+        ExtraMovieDetailsEntity::class,
+        CastAndCrewEntity::class,
+        ReviewEntity::class
+    ],
     version = 1
 )
-abstract class MovieDatabase: RoomDatabase() {
+abstract class MovieDatabase : RoomDatabase() {
     abstract fun moviesDao(): MovieEntityDao
 
-    companion object{
+    companion object {
 
         @Volatile
         var INSTANCE: MovieDatabase? = null
 
         fun getDatabase(context: Context): MovieDatabase {
-            return INSTANCE ?: synchronized(this){
+            return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
-                    context,
-                    MovieDatabase::class.java,
-                    "movie_application"
-                )
-                    .build()
-                    .also {
-                        INSTANCE = it
-                    }
+                    context, MovieDatabase::class.java, "movie_application"
+                ).build().also {
+                    INSTANCE = it
+                }
 
 
             }

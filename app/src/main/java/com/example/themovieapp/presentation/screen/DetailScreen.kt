@@ -47,6 +47,7 @@ import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
 import com.example.themovieapp.presentation.components.MovieCard
 import com.example.themovieapp.presentation.components.PersonCard
+import com.example.themovieapp.presentation.components.ReviewCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
 import com.example.themovieapp.utils.TabPage
@@ -55,9 +56,7 @@ import com.example.themovieapp.utils.toDate
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
-    navController: NavController,
-    movieId: Int,
-    viewModel: MovieDetailsViewModel = hiltViewModel()
+    navController: NavController, movieId: Int, viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
     var tabPage by remember {
         mutableStateOf(TabPage.HOME)
@@ -66,22 +65,19 @@ fun DetailScreen(
     val extraMovieDetailUiState = viewModel.extraMovieDetailsUiState.collectAsState().value
     val recommendedMovieListUiState = viewModel.recommendedMovieListUiState.collectAsState().value
     val castAndCrewListUiState = viewModel.castAndCrewListUiState.collectAsState().value
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { movieDetailUiState.movieDetails?.let { Text(text = it.title) } },
-            )
-        },
-        bottomBar = {
-            BottomAppBar {
-                BottomTab(
-                    navController = navController,
-                    tabPage = tabPage,
-                    onTabSelected = { tabPage = it })
-            }
-
+    val reviewListUiState = viewModel.reviewListUiState.collectAsState().value
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { movieDetailUiState.movieDetails?.let { Text(text = it.title) } },
+        )
+    }, bottomBar = {
+        BottomAppBar {
+            BottomTab(navController = navController,
+                tabPage = tabPage,
+                onTabSelected = { tabPage = it })
         }
-    ) { paddingValues ->
+
+    }) { paddingValues ->
         Column(
             modifier = Modifier
                 .verticalScroll(ScrollState(1), true)
@@ -97,47 +93,67 @@ fun DetailScreen(
                         onClickFavourite = { viewModel.addMovieToFavourite() },
                         modifier = Modifier
                     )
-                    extraMovieDetailUiState.extraMovieDetails?.let { extraMovieDetails ->
-                        MoreMovieContent(extraMovieDetails = extraMovieDetails)
-                    }
-                    LazyRow {
-                        items(castAndCrewListUiState.castAndCrew.size) {index ->
-                            val castAndCrew = castAndCrewListUiState.castAndCrew[index]
-                            PersonCard(title = castAndCrew.name, role = castAndCrew.role, photo = castAndCrew.profilePath) {
 
-                            }
+                    Text(text = "Cast and crew :", style = MaterialTheme.typography.titleLarge)
+
+                    LazyRow {
+                        items(castAndCrewListUiState.castAndCrew.size) { index ->
+                            val castAndCrew = castAndCrewListUiState.castAndCrew[index]
+                            PersonCard(
+                                title = castAndCrew.name,
+                                role = castAndCrew.role,
+                                photo = castAndCrew.profilePath
+                            )
                         }
                     }
                 }
-                    LazyRow {
-                        items(recommendedMovieListUiState.movieList.size) {index ->
-                            val recommendedMovie = recommendedMovieListUiState.movieList[index]
-                            MovieCard(title = recommendedMovie.title, date = recommendedMovie.releaseDate, photo = recommendedMovie.posterPath, moreMovieDetails = {
+                Text(text = "Reviews :", style = MaterialTheme.typography.titleLarge)
+
+                LazyRow {
+                    items(reviewListUiState.review.size) { index ->
+                        val review = reviewListUiState.review[index]
+                        val avatar = review.avatarPath ?: " "
+                        ReviewCard(name = review.author, content = review.content, photo = avatar) {
+
+                        }
+                    }
+                }
+                extraMovieDetailUiState.extraMovieDetails?.let { extraMovieDetails ->
+                    MoreMovieContent(extraMovieDetails = extraMovieDetails)
+                }
+                Text(text = "Recommended Movies :", style = MaterialTheme.typography.titleLarge)
+
+                LazyRow {
+                    items(recommendedMovieListUiState.movieList.size) { index ->
+                        val recommendedMovie = recommendedMovieListUiState.movieList[index]
+                        MovieCard(title = recommendedMovie.title,
+                            date = recommendedMovie.releaseDate,
+                            photo = recommendedMovie.posterPath,
+                            moreMovieDetails = {
 
                                 navController.navigate("${Screen.DetailScreen.route}/${recommendedMovie.id}")
 
                             })
-                            }
-                        }
                     }
                 }
+
+
             }
         }
+    }
+}
 
 
 @Composable
 fun BackDrop(
-    movieDetails: Movie,
-    modifier: Modifier = Modifier
+    movieDetails: Movie, modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier,
     ) {
         AsyncImage(
-            model = ImageRequest
-                .Builder(context = LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.backdropPath))
-                .crossfade(true)
+            model = ImageRequest.Builder(context = LocalContext.current)
+                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.backdropPath)).crossfade(true)
                 .build(),
             alpha = 0.5f,
             error = painterResource(id = R.drawable.ic_broken_image),
@@ -146,10 +162,8 @@ fun BackDrop(
             modifier = modifier.align(Alignment.TopCenter)
         )
         AsyncImage(
-            model = ImageRequest
-                .Builder(context = LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.posterPath))
-                .crossfade(true)
+            model = ImageRequest.Builder(context = LocalContext.current)
+                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.posterPath)).crossfade(true)
                 .build(),
 
             error = painterResource(id = R.drawable.ic_broken_image),
@@ -164,24 +178,21 @@ fun BackDrop(
 
 @Composable
 fun MovieContent(movie: Movie, onClickFavourite: () -> Unit, modifier: Modifier) {
-    val favouriteMovieIcon =
-        if (movie.isFavourite) Icons.Default.Favorite
-        else Icons.Default.FavoriteBorder
+    val favouriteMovieIcon = if (movie.isFavourite) Icons.Default.Favorite
+    else Icons.Default.FavoriteBorder
 
     Column(
         modifier = modifier
     ) {
         Box(
-            contentAlignment = Alignment.TopCenter,
-            modifier = Modifier.fillMaxWidth()
+            contentAlignment = Alignment.TopCenter, modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 text = movie.title,
                 style = MaterialTheme.typography.headlineLarge,
             )
             IconButton(
-                onClick = { onClickFavourite() },
-                modifier = modifier.align(Alignment.BottomEnd)
+                onClick = { onClickFavourite() }, modifier = modifier.align(Alignment.BottomEnd)
             ) {
                 Icon(imageVector = favouriteMovieIcon, contentDescription = "")
             }
@@ -216,7 +227,6 @@ fun MoreMovieContent(extraMovieDetails: ExtraMovieDetails) {
         Text(text = "Revenue: ${extraMovieDetails.revenue}")
         Text(text = "Duration: ${extraMovieDetails.runtime}")
         Text(text = "Status: ${extraMovieDetails.status}")
-        Text(text = "Recommended Movies :")
     }
 
 }

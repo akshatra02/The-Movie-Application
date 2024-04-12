@@ -17,13 +17,13 @@ import com.example.themovieapp.domain.model.ExtraMovieDetails
 data class ExtraMovieDetailsEntity(
     @PrimaryKey
     @ColumnInfo(name = "movie_id") val movieId: Int,
-    val budget: Int,
+    val budget: Long,
     val homepage: String,
     @ColumnInfo("imdb_id") val imdbId: String,
     @ColumnInfo("original_language") val originalLanguage: String,
     @ColumnInfo("original_title") val originalTitle: String,
     @ColumnInfo("recommendation_movies_list") val recommendationMoviesList: String,
-    val revenue: Int,
+    val revenue: Long,
     val runtime: Int,
     val status: String,
     val tagline: String,
