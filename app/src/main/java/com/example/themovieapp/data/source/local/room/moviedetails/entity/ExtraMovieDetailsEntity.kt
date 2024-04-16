@@ -17,35 +17,16 @@ import com.example.themovieapp.domain.model.ExtraMovieDetails
 data class ExtraMovieDetailsEntity(
     @PrimaryKey
     @ColumnInfo(name = "movie_id") val movieId: Int,
+
     val budget: Long,
     val homepage: String,
-    @ColumnInfo("imdb_id") val imdbId: String,
-    @ColumnInfo("original_language") val originalLanguage: String,
-    @ColumnInfo("original_title") val originalTitle: String,
-    @ColumnInfo("recommendation_movies_list") val recommendationMoviesList: String,
     val revenue: Long,
     val runtime: Int,
     val status: String,
     val tagline: String,
-) {
-    fun toExtraMovieDetails(): ExtraMovieDetails = ExtraMovieDetails(
-        id = movieId,
-        budget = budget.toLong(),
-        homepage = homepage,
-        imdbId = imdbId,
-        originalLanguage = originalLanguage,
-        originalTitle = originalTitle,
-        revenue = revenue.toLong(),
-        runtime = runtime,
-        status = status,
-        tagline = tagline,
-        recommendationMoviesList =
-        try {
-            recommendationMoviesList.replace("[","").replace("]","").split(", ") .map { it.toInt() }.toList()
-        } catch (e: Exception) {
-            listOf(-1, -2)
-        },
+    @ColumnInfo("imdb_id") val imdbId: String,
+    @ColumnInfo("recommendation_movies_list") val recommendationMoviesList: String,
+    @ColumnInfo("images_path_list") val imagesPathList: String,
+    @ColumnInfo("video_link") val videoLink: String,
 
-        )
-
-}
+)

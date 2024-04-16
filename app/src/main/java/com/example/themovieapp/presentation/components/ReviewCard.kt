@@ -65,7 +65,7 @@ fun ReviewCard(
                     .build(),
                 error = painterResource(id = R.drawable.person),
             contentScale = ContentScale.Crop,
-                contentDescription = "hello",
+                contentDescription = "",
                 modifier = Modifier
                     .size(100.dp)
                     .clip(CircleShape)

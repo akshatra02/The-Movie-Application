@@ -20,8 +20,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.themovieapp.R
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.utils.TabPage
 
@@ -37,8 +39,8 @@ fun BottomTab(
         modifier = Modifier
             .fillMaxWidth(),
 
-        containerColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
+        containerColor = MaterialTheme.colorScheme.background,
+        contentColor = MaterialTheme.colorScheme.secondary,
     ) {
 
         Row(
@@ -46,12 +48,12 @@ fun BottomTab(
             horizontalArrangement = Arrangement.SpaceEvenly,
 
         ) {
-            SingleTab(title = "Home", icon = Icons.Default.Home, onclick = {
+            SingleTab(title = stringResource(R.string.home), icon = Icons.Default.Home, onclick = {
                 onTabSelected(TabPage.HOME)
                 navController.navigate(
                 Screen.HomeScreen.route
             )})
-            SingleTab(title = "Favourite", icon = Icons.Default.Favorite, onclick = {
+            SingleTab(title = stringResource(R.string.favourite), icon = Icons.Default.Favorite, onclick = {
                 onTabSelected(TabPage.FAVOURITE)
                 navController.navigate(
                 Screen.FavouriteScreen.route

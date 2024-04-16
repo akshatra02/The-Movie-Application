@@ -8,6 +8,7 @@ import androidx.room.Update
 import androidx.room.Upsert
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.CastAndCrewEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.ExtraMovieDetailsEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieDetailsAndExtraDetailsData
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.ReviewEntity
 
@@ -21,9 +22,8 @@ interface MovieEntityDao {
 
     @Query("SELECT * FROM movie_table WHERE category = :category")
     suspend fun getMovieListByCategory(category: String): List<MovieEntity>
-
     @Query("SELECT * FROM movie_table WHERE id = :id")
-    suspend fun getMovieById(id : Int): MovieEntity
+    suspend fun getMovieById(id : Int): MovieEntity?
 
     @Query("SELECT * FROM movie_table")
     suspend fun getAllMovies():List<MovieEntity>
@@ -37,10 +37,6 @@ interface MovieEntityDao {
     @Upsert
     suspend fun upsertExtraMovieDetails(extraMovieDetailsEntity: ExtraMovieDetailsEntity)
 
-
-    @Query("SELECT * FROM extra_movie_details_table WHERE movie_id = :id")
-    suspend fun getExtraMovieDetailsById(id : Int): ExtraMovieDetailsEntity?
-
     @Upsert
     suspend fun insertCastAndCrew(castAndCrewEntity: CastAndCrewEntity)
 
@@ -53,7 +49,13 @@ interface MovieEntityDao {
     @Query("SELECT * FROM review_table WHERE movie_id = :id")
     suspend fun getMovieReviewById(id: Int):List<ReviewEntity>
 
-
+@Query("""SELECT movie.*, extradetails.* 
+FROM movie_table AS movie 
+LEFT JOIN EXTRA_MOVIE_DETAILS_TABLE AS extradetails 
+ON movie.id = extradetails.movie_id
+WHERE movie.id = :id
+""")
+suspend fun getMovieDetailsAndExtraById(id: Int): MovieDetailsAndExtraDetailsData?
 
 
 }

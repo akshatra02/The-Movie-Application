@@ -1,5 +1,6 @@
 package com.example.themovieapp.presentation.screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Search
@@ -30,14 +32,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
@@ -59,7 +66,23 @@ fun SearchScreen(
     val searchQuery = viewModel.searchQuery
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(text = "Search") },
+            TopAppBar(title = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .fillMaxWidth()
+                ) {
+                    Image(painter = painterResource(R.drawable.movie_icon), contentDescription = "", contentScale = ContentScale.Crop, modifier = Modifier
+                        .size(36.dp)
+                        .clip(
+                            CircleShape
+                        ))
+                    Text(
+                        text = stringResource(R.string.search), style = MaterialTheme.typography.headlineSmall
+                    )
+                } },
                 navigationIcon = {
                     IconButton(onClick = {
                         navController.navigate(Screen.HomeScreen.route) {
@@ -70,7 +93,7 @@ fun SearchScreen(
                     }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBackIosNew,
-                            contentDescription = "Back"
+                            contentDescription = ""
                         )
                     }
                 }
@@ -95,7 +118,7 @@ fun SearchScreen(
             onSearch = { keyboardController?.hide() },
             active = true,
             onActiveChange = {},
-            placeholder = { Text(text = "Search for movies...") },
+            placeholder = { Text(text = stringResource(R.string.search_for_movies)) },
             leadingIcon = {
                 Icon(imageVector = Icons.Default.Search, contentDescription = null)
             }
@@ -134,11 +157,11 @@ fun MovieListEmptyState(
         modifier = modifier.fillMaxSize()
     ) {
         Text(
-            text = "No movies found",
+            text = stringResource(R.string.no_movies_found),
             style = MaterialTheme.typography.titleSmall
         )
         Text(
-            text = "Try adjusting your search",
+            text = stringResource(R.string.try_adjusting_your_search),
             style = MaterialTheme.typography.bodyLarge
         )
     }

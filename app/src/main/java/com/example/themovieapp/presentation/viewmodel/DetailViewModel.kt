@@ -3,18 +3,16 @@ package com.example.themovieapp.presentation.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.themovieapp.data.source.remote.dto.extramoviedetails.ExtraMovieDetailsDto
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
-import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
 import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.ExtraMovieDetails
 import com.example.themovieapp.domain.model.Movie
+import com.example.themovieapp.domain.model.MovieDetailsAndExtraDetails
 import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.domain.usecase.FavouriteMoviesUseCase
 import com.example.themovieapp.domain.usecase.GetMovieByIdUseCase
 import com.example.themovieapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -33,9 +31,6 @@ class MovieDetailsViewModel @Inject constructor(
     private val _movieDetailsUiState = MutableStateFlow(MovieDetailUiState())
     val movieDetailsUiState = _movieDetailsUiState.asStateFlow()
 
-    private val _extraMovieDetailsUiState = MutableStateFlow(ExtraMovieDetailUiState())
-    val extraMovieDetailsUiState = _extraMovieDetailsUiState.asStateFlow()
-
     private val _recommendedMovieListUiState = MutableStateFlow(MovieUiState())
     val recommendedMovieListUiState = _recommendedMovieListUiState.asStateFlow()
 
@@ -45,62 +40,101 @@ class MovieDetailsViewModel @Inject constructor(
     private val _reviewListUiState = MutableStateFlow(ReviewListUiState())
     val reviewListUiState = _reviewListUiState.asStateFlow()
 
+    private val _movieAndExtraDetailUiState = MutableStateFlow(MovieAndExtraDetailsUiState())
+    val movieAndExtraDetailUiState = _movieAndExtraDetailUiState.asStateFlow()
+
 
     val movieId = savedStateHandle.get<Int>("movieId")
 
     init {
         getMoviesById(movieId ?: -1)
         addExtraMovieDetails()
+        mem()
     }
-
-    fun addExtraMovieDetails() {
+    fun mem(){
         viewModelScope.launch {
             if (movieId != null) {
-                getMovieByIdUseCase.addExtraMovieDetails(movieId).collectLatest { result ->
+                getMovieByIdUseCase(movieId).collectLatest { result ->
+                    val extraDetailsAvailable = result.data?.movieId
                     when (result) {
                         is Resource.Error -> {
-                            _extraMovieDetailsUiState.update {
+                            _movieAndExtraDetailUiState.update {
                                 it.copy(isLoading = true)
                             }
                         }
 
                         is Resource.Loading -> {
-                            _extraMovieDetailsUiState.update {
-                                it.copy(isLoading = extraMovieDetailsUiState.value.isLoading)
+                            _movieAndExtraDetailUiState.update {
+                                it.copy(isLoading = movieAndExtraDetailUiState.value.isLoading)
                             }
                         }
 
                         is Resource.Success -> result.data?.let { movie ->
-                            _extraMovieDetailsUiState.update {
+                            _movieAndExtraDetailUiState.update {
                                 it.copy(
-                                    extraMovieDetails = movie
+                                    movieAndExtraDetails = result.data,
+                                    extraDetailsAvailable = extraDetailsAvailable != null
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        }
+
+    fun addExtraMovieDetails() {
+        viewModelScope.launch {
+            if (movieId != null) {
+                _movieAndExtraDetailUiState.update { it.copy(isLoading = true) }
+                getMovieByIdUseCase.addExtraMovieDetails(movieId).collectLatest { result ->
+                    val basicMovieDetails = getMoviesById(movieId)
+                    when (result) {
+                        is Resource.Error -> {
+                            _movieAndExtraDetailUiState.update {
+                                it.copy(isLoading = true)
+                            }
+                        }
+
+                        is Resource.Loading -> {
+                            _movieAndExtraDetailUiState.update {
+                                it.copy(isLoading = movieAndExtraDetailUiState.value.isLoading)
+                            }
+                        }
+
+                        is Resource.Success -> result.data?.let { movie ->
+                            _movieAndExtraDetailUiState.update {
+                                it.copy(
+                                    movieAndExtraDetails = movie
                                 )
                             }
                             val listOfRecommendationMovies = movie.recommendationMoviesList
-                            for (recommendedMovie in listOfRecommendationMovies) {
-                                getMovieByIdUseCase(recommendedMovie).collectLatest { result ->
-                                    when (result) {
-                                        is Resource.Error -> {
-                                            _recommendedMovieListUiState.update {
-                                                it.copy(isLoading = true)
+                            if (listOfRecommendationMovies != null) {
+                                for (recommendedMovie in listOfRecommendationMovies) {
+                                    getMovieByIdUseCase.getMovieById(recommendedMovie).collectLatest { result ->
+                                        when (result) {
+                                            is Resource.Error -> {
+                                                _recommendedMovieListUiState.update {
+                                                    it.copy(isLoading = true)
+                                                }
+                                            }
+
+                                            is Resource.Loading -> {
+                                                _recommendedMovieListUiState.update {
+                                                    it.copy(isLoading = _recommendedMovieListUiState.value.isLoading)
+                                                }
+                                            }
+
+                                            is Resource.Success -> result.data?.let { movie ->
+                                                _recommendedMovieListUiState.update {
+                                                    it.copy(
+                                                        movieList = recommendedMovieListUiState.value.movieList + movie
+                                                    )
+                                                }
                                             }
                                         }
 
-                                        is Resource.Loading -> {
-                                            _recommendedMovieListUiState.update {
-                                                it.copy(isLoading = _recommendedMovieListUiState.value.isLoading)
-                                            }
-                                        }
-
-                                        is Resource.Success -> result.data?.let { movie ->
-                                            _recommendedMovieListUiState.update {
-                                                it.copy(
-                                                    movieList = recommendedMovieListUiState.value.movieList + movie
-                                                )
-                                            }
-                                        }
                                     }
-
                                 }
                             }
                             getMovieByIdUseCase.getCastAndCrewStream(movieId).collectLatest { result ->
@@ -161,19 +195,19 @@ class MovieDetailsViewModel @Inject constructor(
 
     fun addMovieToFavourite() {
         viewModelScope.launch {
-            val currentMovie = movieDetailsUiState.value.movieDetails
+            val currentMovie = _movieAndExtraDetailUiState.value.movieAndExtraDetails
             if (currentMovie != null) {
                 val updatedMovie = currentMovie.copy(
                     isFavourite = !currentMovie.isFavourite
                 )
-                _movieDetailsUiState.update { it.copy(movieDetails = updatedMovie) }
+                _movieAndExtraDetailUiState.update { it.copy(movieAndExtraDetails = updatedMovie) }
                 // Update database with new isFavourite value (using repository function)
                 updateMovieFavouriteStatus(updatedMovie)
             }
         }
     }
 
-    fun updateMovieFavouriteStatus(movie: Movie) {
+    private fun updateMovieFavouriteStatus(movie: MovieDetailsAndExtraDetails) {
         viewModelScope.launch {
             val favouriteBody = FavouriteBody(
                 favorite = movie.isFavourite, media_id = movie.id, media_type = "movie"
@@ -182,7 +216,7 @@ class MovieDetailsViewModel @Inject constructor(
                 .collectLatest { result ->
                     when (result) {
                         is Resource.Error -> {
-                            _movieDetailsUiState.update {
+                            _movieAndExtraDetailUiState.update {
                                 it.copy(
                                     isLoading = false
 
@@ -191,7 +225,7 @@ class MovieDetailsViewModel @Inject constructor(
                         }
 
                         is Resource.Loading -> {
-                            _movieDetailsUiState.update {
+                            _movieAndExtraDetailUiState.update {
                                 it.copy(
                                     isLoading = true
                                 )
@@ -200,11 +234,11 @@ class MovieDetailsViewModel @Inject constructor(
 
                         is Resource.Success -> {
                             result.data?.let { movie ->
-                                _movieDetailsUiState.update {
-                                    it.copy(movieDetails = movie)
+                                _movieAndExtraDetailUiState.update {
+                                    it.copy(movieAndExtraDetails = movie)
                                 }
                             }
-                            _movieDetailsUiState.update {
+                            _movieAndExtraDetailUiState.update {
                                 it.copy(
                                     isLoading = false
                                 )
@@ -222,7 +256,7 @@ class MovieDetailsViewModel @Inject constructor(
             _movieDetailsUiState.update {
                 it.copy(isLoading = true)
             }
-            getMovieByIdUseCase(id).collectLatest { result ->
+            getMovieByIdUseCase.getMovieById(id).collectLatest { result ->
                 when (result) {
                     is Resource.Error -> {
                         _movieDetailsUiState.update {
@@ -244,7 +278,7 @@ class MovieDetailsViewModel @Inject constructor(
                     is Resource.Success -> {
                         result.data?.let { movie ->
                             _movieDetailsUiState.update {
-                                it.copy(movieDetails = movie)
+                                it.copy(movieDetails = movie,)
                             }
                         }
                         _movieDetailsUiState.update {
@@ -260,12 +294,7 @@ class MovieDetailsViewModel @Inject constructor(
 }
 
 data class MovieDetailUiState(
-    val movieDetails: Movie? = null, val isLoading: Boolean = true, val isFavourite: Boolean = false
-)
-
-data class ExtraMovieDetailUiState(
-    val extraMovieDetails: ExtraMovieDetails? = null,
-    val isLoading: Boolean = true,
+    val movieDetails: Movie? = null,val isLoading: Boolean = true, val isFavourite: Boolean = false
 )
 
 data class CastAndCrewListUiState(
@@ -279,3 +308,9 @@ data class ReviewListUiState(
     val isLoading: Boolean = true,
 
     )
+data class MovieAndExtraDetailsUiState(
+    val movieAndExtraDetails :MovieDetailsAndExtraDetails? = null,
+    val isLoading: Boolean = true,
+    val extraDetailsAvailable: Boolean = false
+
+)

@@ -35,7 +35,7 @@ data class ReviewEntity(
         content = content,
         url = url,
         updatedAt = updatedAt,
-        rating = rating,
+        rating = rating.toDouble(),
         avatarPath = avatarPath,
         createdAt = createdAt,
     )

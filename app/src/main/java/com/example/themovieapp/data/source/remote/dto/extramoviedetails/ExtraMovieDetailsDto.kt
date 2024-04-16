@@ -33,19 +33,21 @@ data class ExtraMovieDetailsDto(
     @SerializedName (value = "vote_count") val voteCount: Int?,
     val category: String,
     val isFavourite: Boolean,
+    val videoLink: String?,
+    val imagesPathList: String?,
 ) {
-    fun toExtraMovieDetailsEntity(recommendationMoviesList: List<Int>) = ExtraMovieDetailsEntity(
+    fun toExtraMovieDetailsEntity(recommendationMoviesList: List<Int>,imagesPathList: String, videoLink: String) = ExtraMovieDetailsEntity(
         movieId = id ?: 0,
         budget = budget ?: 0,
         homepage = homepage ?: "",
         imdbId = imdbId ?: "",
-        originalLanguage = originalLanguage ?: "",
-        originalTitle = originalTitle ?: "",
         revenue = revenue ?: 0,
         runtime = runtime ?: 0,
         status = status ?: "",
         tagline = tagline ?: "",
-        recommendationMoviesList = recommendationMoviesList.toString()
+        recommendationMoviesList = recommendationMoviesList.toString(),
+        imagesPathList = imagesPathList,
+        videoLink = videoLink,
 
     )
 

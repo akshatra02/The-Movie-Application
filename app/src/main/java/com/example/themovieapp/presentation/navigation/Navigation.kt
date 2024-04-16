@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.themovieapp.presentation.screen.CastAndCrewScreen
 import com.example.themovieapp.presentation.screen.CategoryScreen
 import com.example.themovieapp.presentation.screen.DetailScreen
 import com.example.themovieapp.presentation.screen.FavouriteScreen
@@ -33,6 +34,9 @@ fun Navigation(
         composable(Screen.FavouriteScreen.route){
             FavouriteScreen(navController)
         }
+        composable(Screen.CastAndCrewScreen.route){
+            CastAndCrewScreen(navController)
+        }
         composable(Screen.SearchScreen.route){
             SearchScreen(navController)
         }
@@ -47,7 +51,7 @@ fun Navigation(
         ){backStackEntry ->
             val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
 
-            DetailScreen(navController, movieId)
+            DetailScreen(navController)
         }
 
     }

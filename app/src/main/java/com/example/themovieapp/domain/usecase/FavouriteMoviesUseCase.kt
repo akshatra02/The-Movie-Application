@@ -2,6 +2,7 @@ package com.example.themovieapp.domain.usecase
 
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.domain.model.Movie
+import com.example.themovieapp.domain.model.MovieDetailsAndExtraDetails
 import com.example.themovieapp.domain.repository.MovieRepository
 import com.example.themovieapp.utils.Resource
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +15,7 @@ class FavouriteMoviesUseCase @Inject constructor(
         return movieRepository.getFavouriteMoviesStream()
     }
 
-    fun addMovieToFavouriteStream(movie: FavouriteBody): Flow<Resource<Movie>> {
+    fun addMovieToFavouriteStream(movie: FavouriteBody): Flow<Resource<MovieDetailsAndExtraDetails>> {
         return movieRepository.addMovieToFavouriteStream(movie)
     }
 }

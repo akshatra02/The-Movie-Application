@@ -4,4 +4,19 @@
     <string name="popular">Popular</string>
     <string name="now_playing">Now Playing</string>
     <string name="upcoming">Upcoming</string>
+    <string name="movies">Movies</string>
+    <string name="welcome_message">Welcome \nMillions of movies, TV shows and people to discover. Explore now.</string>
+    <string name="search">Search</string>
+    <string name="favourite">Favourite</string>
+    <string name="search_for_movies">Search for movies...</string>
+    <string name="no_movies_found">No movies found</string>
+    <string name="try_adjusting_your_search">Try adjusting your search</string>
+    <string name="home">Home</string>
+    <string name="overall_rating">Overall Rating</string>
+    <string name="rating_score">%.1f</string>
+    <string name="cast_and_crew">Cast and crew :</string>
+    <string name="overview">Overview</string>
+    <string name="recommended_movies">Recommended Movies :</string>
+    <string name="watch_trailer">Watch Trailer</string>
+    <string name="media">Media :</string>
 </resources>

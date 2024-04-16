@@ -1,6 +1,8 @@
 package com.example.themovieapp.presentation.screen
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,9 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
@@ -33,11 +38,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -65,9 +72,22 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     }
     Scaffold(topBar = {
         TopAppBar(title = {
-            Text(
-                text = "Movies", style = MaterialTheme.typography.headlineMedium
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(2.dp)
+                    .fillMaxWidth()
+            ) {
+                Image(painter = painterResource(R.drawable.movie_icon), contentDescription = "", contentScale = ContentScale.Crop, modifier = Modifier
+                    .size(40.dp)
+                    .clip(
+                        CircleShape
+                    ))
+                Text(
+                    text = stringResource(R.string.movies), style = MaterialTheme.typography.headlineMedium
+                )
+            }
         }, actions = {
             IconButton(onClick = { navController.navigate(Screen.SearchScreen.route) }) {
                 Icon(imageVector = Icons.Default.Search, contentDescription = null)
@@ -108,11 +128,11 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                         ), Triple(R.string.popular, popularUiState, Category.POPULAR)
                     )
                     item {
-                        BackgroundWithTextAndButton(
-                            navController = navController,
-                            background = viewModel.poster.toString(),
-                        )
-
+                        if (!nowPlayingUiState.isLoading) {
+                            BackgroundWithTextAndButton(
+                                background = nowPlayingUiState.movieList.first().posterPath,
+                            )
+                        }
                     }
                     items(items = categories) { item ->
                         val titleResId = item.first
@@ -137,7 +157,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackgroundWithTextAndButton(
-    navController: NavController,
     background: String,
 ) {
     Box(
@@ -148,12 +167,13 @@ fun BackgroundWithTextAndButton(
             model = ImageRequest.Builder(context = LocalContext.current)
                 .data(MoviesApi.IMAGE_BASE_URL.plus(background)).crossfade(true).build(),
             error = painterResource(id = R.drawable.ic_broken_image),
-            contentScale = ContentScale.FillWidth,
-            alpha = .2f,
+            contentScale = ContentScale.Crop ,
+            alpha = .5f,
             contentDescription = "hello",
             modifier = Modifier
                 .fillMaxSize()
                 .height(400.dp)
+                .clip(RoundedCornerShape(16.dp))
         )
 
         // Text and Button
@@ -163,7 +183,7 @@ fun BackgroundWithTextAndButton(
                 .padding(16.dp),
         ) {
             Text(
-                text = "Welcome.\n" + "Millions of movies, TV shows and people to discover. Explore now.",
+                text = stringResource(R.string.welcome_message),
                 style = MaterialTheme.typography.headlineMedium,
                 color = Color.White,
             )
@@ -182,7 +202,8 @@ fun MovieLazyRow(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier
+        .padding(16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -190,14 +211,18 @@ fun MovieLazyRow(
         ) {
             Text(
                 text = stringResource(title),
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 modifier = modifier.padding(start = 5.dp)
             )
-            IconButton(modifier = Modifier, onClick = { categoryMoreMovies() }) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown, contentDescription = "more"
-                )
-            }
+            Text(
+                text = "See All ",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = modifier
+                    .padding(start = 5.dp)
+                    .clickable {
+                        categoryMoreMovies()
+                    }
+            )
         }
         LazyRow {
             items(movieList.size) { i ->
@@ -205,10 +230,12 @@ fun MovieLazyRow(
                 MovieCard(
                     title = currentUiState.title,
                     date = currentUiState.releaseDate,
+                    rating = currentUiState.voteAverage,
                     photo = currentUiState.posterPath,
                     moreMovieDetails = {
                         navController.navigate("${Screen.DetailScreen.route}/${currentUiState.id}")
                     },
+                    modifier = modifier
                 )
                 if (i >= movieList.size - 1 ){
                     loadMoreMovie()

@@ -5,6 +5,8 @@ import com.example.themovieapp.data.source.remote.dto.extramoviedetails.ExtraMov
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.data.source.remote.dto.movielist.GenreListDto
 import com.example.themovieapp.data.source.remote.dto.movielist.MovieListDto
+import com.example.themovieapp.data.source.remote.dto.posters.ImagesDto
+import com.example.themovieapp.data.source.remote.dto.posters.VideoDto
 import com.example.themovieapp.data.source.remote.dto.review.ReviewListDto
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -45,6 +47,18 @@ interface MoviesApi {
     suspend fun getRecommendationList(
         @Path("movie_id") movieId: Int
     ): MovieListDto
+
+    @Headers(AUTHENTICATION)
+    @GET("movie/{movie_id}/images")
+    suspend fun getImages(
+        @Path("movie_id") movieId: Int
+    ): ImagesDto
+
+    @Headers(AUTHENTICATION)
+    @GET("movie/{movie_id}/videos")
+    suspend fun getVideo(
+        @Path("movie_id") movieId: Int
+    ): VideoDto
 
     @Headers(AUTHENTICATION)
     @GET("movie/{movie_id}/reviews")

@@ -8,7 +8,7 @@ data class Review(
     val author: String,
     val content: String,
     val url: String,
-    val rating: Int,
+    val rating: Double,
     val avatarPath: String?,
     val createdAt: String,
     val updatedAt: String,
