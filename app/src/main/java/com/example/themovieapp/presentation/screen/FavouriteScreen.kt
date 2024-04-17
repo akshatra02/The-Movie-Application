@@ -80,6 +80,7 @@ fun FavouriteScreen(navController: NavController, viewModel: FavouriteViewModel 
         ) {
             items(favouriteUiState.movieList.size) { index ->
                 val favouriteMovie = favouriteUiState.movieList[index]
+                if (favouriteMovie != null){
                 MovieCard(
                     title = favouriteMovie.title,
                     date = favouriteMovie.releaseDate,
@@ -91,7 +92,7 @@ fun FavouriteScreen(navController: NavController, viewModel: FavouriteViewModel 
                     })
 
 
-            }
+            }}
 
 
         }

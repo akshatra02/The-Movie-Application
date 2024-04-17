@@ -1,6 +1,8 @@
 package com.example.themovieapp.presentation.screen
 
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +42,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -56,6 +59,7 @@ import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.presentation.components.BottomTab
 import com.example.themovieapp.presentation.components.MovieCard
 import com.example.themovieapp.presentation.components.PersonCard
+import com.example.themovieapp.presentation.components.RatingBar
 import com.example.themovieapp.presentation.components.ReviewCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
@@ -75,10 +79,9 @@ fun DetailScreen(
     var tabPage by remember {
         mutableStateOf(TabPage.HOME)
     }
-    val movieDetailUiState = viewModel.movieDetailsUiState.collectAsState().value
-    val recommendedMovieListUiState = viewModel.recommendedMovieListUiState.collectAsState().value
-    val castAndCrewListUiState = viewModel.castAndCrewListUiState.collectAsState().value
-    val reviewListUiState = viewModel.reviewListUiState.collectAsState().value
+    val recommendedMovieListUiState by viewModel.recommendedMovieListUiState.collectAsState()
+    val castAndCrewListUiState by viewModel.castAndCrewListUiState.collectAsState()
+    val reviewListUiState by viewModel.reviewListUiState.collectAsState()
     val movieAndExtraDetailUiState = viewModel.movieAndExtraDetailUiState.collectAsState().value
     Scaffold(topBar = {
         TopAppBar(
@@ -100,7 +103,7 @@ fun DetailScreen(
                                 CircleShape
                             )
                     )
-                    movieDetailUiState.movieDetails?.let {
+                    movieAndExtraDetailUiState.movieAndExtraDetails?.let {
                         Text(
                             text = it.title, style = MaterialTheme.typography.headlineSmall
                         )
@@ -131,7 +134,7 @@ fun DetailScreen(
                             onClickFavourite = { viewModel.addMovieToFavourite() },
                             modifier = Modifier
                         )
-                        if (castAndCrewListUiState.isLoading && reviewListUiState.isLoading && recommendedMovieListUiState.isLoading) {
+                        if (castAndCrewListUiState.isLoading) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -146,6 +149,7 @@ fun DetailScreen(
                                     castAndCrewList = castAndCrewListUiState.castAndCrew,
                                     castAndCrewForMovie = { navController.navigate(Screen.CastAndCrewScreen.route) })
                             }
+                            Log.d("Aks",reviewListUiState.review.size.toString())
                             if (reviewListUiState.review.isNotEmpty()) {
 
                                 ReviewContent(reviewList = reviewListUiState.review)
@@ -260,7 +264,7 @@ fun MovieContent(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -271,6 +275,9 @@ fun MovieContent(
                 text = stringResource(R.string.rating_score).format(rating),
                 style = MaterialTheme.typography.titleLarge
             )
+            if (rating != null) {
+                RatingBar(rating)
+            }
 
         }
         Button(
@@ -316,41 +323,70 @@ fun MoreMovieContent(extraMovieDetails: MovieDetailsAndExtraDetails) {
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.secondary,
         )
+        if (extraMovieDetails.budget != 0L) {
+            Text(text = "Budget: ${extraMovieDetails.budget}")
 
-        Text(text = "Budget: ${extraMovieDetails.budget ?: 0}")
-        Text(text = "Revenue: ${extraMovieDetails.revenue ?: 0}")
+        }
+        if (extraMovieDetails.revenue != 0L) {
+        Text(text = "Revenue: ${extraMovieDetails.revenue}")
+        }
         val duration = extraMovieDetails.runtime?.toDuration(DurationUnit.MINUTES)
         Text(text = "Duration: $duration")
-        Text(text = "Status: ${extraMovieDetails.status}")
+            Text(text = "Status: ${extraMovieDetails.status}")
     }
 }
 
 @Composable
 fun CastAndCrewContent(castAndCrewList: List<CastAndCrew>, castAndCrewForMovie: () -> Unit = {}) {
+    var isCast by remember {
+        mutableStateOf(true)
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Absolute.SpaceBetween
     ) {
+        Row(
+            horizontalArrangement = Arrangement.Absolute.spacedBy(4.dp)
+
+        ) {
+            Text(
+                text = "Cast",
+                style = MaterialTheme.typography.headlineSmall,
+                color = if (isCast)MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSecondary,
+                textDecoration = if (isCast) TextDecoration.Underline else TextDecoration.None,
+                modifier = Modifier
+                    .padding(start = 5.dp)
+                    .clickable { isCast = true },
+            )
+            Text(
+                text = "Crew",
+                style = MaterialTheme.typography.headlineSmall,
+                color = if (!isCast)MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSecondary,
+                textDecoration = if (!isCast) TextDecoration.Underline else TextDecoration.None,
+                modifier = Modifier
+                    .padding(start = 5.dp)
+                    .clickable { isCast = false },
+
+                )
+        }
         Text(
-            text = stringResource(R.string.cast_and_crew),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(start = 5.dp)
+            text = "See All ",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .padding(start = 5.dp)
+                .clickable {
+                    castAndCrewForMovie()
+                }
         )
-//        Text(
-//            text = "See All ",
-//            style = MaterialTheme.typography.titleMedium,
-//            modifier = Modifier
-//                .padding(start = 5.dp)
-//                .clickable {
-//                    castAndCrewForMovie()
-//                }
-//        )
     }
+
+    val castList = castAndCrewList.filter { it.isCast }.sortedBy { it.order }
+    val crewList = castAndCrewList.filter { !it.isCast }
+    val list = if (isCast) castList else crewList
     LazyRow {
-        items(castAndCrewList.size) { index ->
-            val castAndCrew = castAndCrewList[index]
+        items(list.size) { index ->
+            val castAndCrew = list[index]
             PersonCard(
                 title = castAndCrew.name,
                 role = castAndCrew.role,
@@ -415,7 +451,7 @@ fun MediaContent(extraMovieDetails: MovieDetailsAndExtraDetails) {
 }
 
 @Composable
-fun RecommendationContent(recommendedMovieList: List<Movie>, navController: NavController) {
+fun RecommendationContent(recommendedMovieList: List<Movie?>, navController: NavController) {
     Text(
         text = stringResource(R.string.recommended_movies),
         color = MaterialTheme.colorScheme.secondary,
@@ -425,14 +461,16 @@ fun RecommendationContent(recommendedMovieList: List<Movie>, navController: NavC
     LazyRow {
         items(recommendedMovieList.size) { index ->
             val recommendedMovie = recommendedMovieList[index]
-            MovieCard(title = recommendedMovie.title,
-                date = recommendedMovie.releaseDate,
-                rating = recommendedMovie.voteAverage,
-                photo = recommendedMovie.posterPath,
-                moreMovieDetails = {
-                    navController.navigate("${Screen.DetailScreen.route}/${recommendedMovie.id}")
+            if (recommendedMovie != null) {
+                MovieCard(title = recommendedMovie.title,
+                    date = recommendedMovie.releaseDate,
+                    rating = recommendedMovie.voteAverage,
+                    photo = recommendedMovie.posterPath,
+                    moreMovieDetails = {
+                        navController.navigate("${Screen.DetailScreen.route}/${recommendedMovie.id}")
 
-                })
+                    })
+            }
         }
     }
 

@@ -127,29 +127,30 @@ fun CategoryScreen(
             ) {
                 items(categoryUiState.movieList.size) { i ->
                     val movie = categoryUiState.movieList[i]
-                    MovieCard(
-                        title = movie.title,
-                        date = movie.releaseDate,
-                        rating = movie.voteAverage,
+                    if (movie != null) {
+                        MovieCard(
+                            title = movie.title,
+                            date = movie.releaseDate,
+                            rating = movie.voteAverage,
 
-                        photo = movie.posterPath,
-                        moreMovieDetails = {
-                            navController.navigate("${Screen.DetailScreen.route}/${movie.id}")
-                        })
+                            photo = movie.posterPath,
+                            moreMovieDetails = {
+                                navController.navigate("${Screen.DetailScreen.route}/${movie.id}")
+                            })
 
-                    if (i >= categoryUiState.movieList.size - 1 && !categoryUiState.isLoading) {
-                        viewModel.loadMore()
-                    }
-                    else if(i >= categoryUiState.movieList.size - 1 && categoryUiState.isLoading) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(paddingValues),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
+                        if (i >= categoryUiState.movieList.size - 1 && !categoryUiState.isLoading) {
+                            viewModel.loadMore()
+                        } else if (i >= categoryUiState.movieList.size - 1 && categoryUiState.isLoading) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(paddingValues),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+
                         }
-
                     }
                 }
             }

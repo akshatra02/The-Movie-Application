@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -129,9 +128,11 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                     )
                     item {
                         if (!nowPlayingUiState.isLoading) {
-                            BackgroundWithTextAndButton(
-                                background = nowPlayingUiState.movieList.first().posterPath,
-                            )
+                            nowPlayingUiState.movieList.first()?.let {
+                                BackgroundWithTextAndButton(
+                                    background = it.posterPath,
+                                )
+                            }
                         }
                     }
                     items(items = categories) { item ->
@@ -197,8 +198,8 @@ fun MovieLazyRow(
     @StringRes title: Int,
     categoryMoreMovies: () -> Unit = {},
     isLoading: Boolean,
-    loadMoreMovie : () -> Unit = {},
-    movieList: List<Movie>,
+    loadMoreMovie: () -> Unit = {},
+    movieList: List<Movie?>,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
@@ -227,18 +228,20 @@ fun MovieLazyRow(
         LazyRow {
             items(movieList.size) { i ->
                 val currentUiState = movieList.get(i)
-                MovieCard(
-                    title = currentUiState.title,
-                    date = currentUiState.releaseDate,
-                    rating = currentUiState.voteAverage,
-                    photo = currentUiState.posterPath,
-                    moreMovieDetails = {
-                        navController.navigate("${Screen.DetailScreen.route}/${currentUiState.id}")
-                    },
-                    modifier = modifier
-                )
-                if (i >= movieList.size - 1 ){
-                    loadMoreMovie()
+                if (currentUiState != null) {
+                    MovieCard(
+                        title = currentUiState.title,
+                        date = currentUiState.releaseDate,
+                        rating = currentUiState.voteAverage,
+                        photo = currentUiState.posterPath,
+                        moreMovieDetails = {
+                            navController.navigate("${Screen.DetailScreen.route}/${currentUiState.id}")
+                        },
+                        modifier = modifier
+                    )
+                    if (i >= movieList.size - 1) {
+                        loadMoreMovie()
+                    }
                 }
             }
         }
