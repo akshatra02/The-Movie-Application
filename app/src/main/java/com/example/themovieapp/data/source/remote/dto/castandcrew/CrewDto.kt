@@ -27,7 +27,6 @@ data class CrewDto(
             knowForDepartment = knownForDepartment ?: "",
             order = -1,
             profilePath = profilePath ?: "",
-            originalName = originalName ?: "",
             isCast = false
         )
 }

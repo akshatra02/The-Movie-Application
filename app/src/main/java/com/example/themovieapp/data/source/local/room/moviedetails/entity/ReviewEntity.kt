@@ -22,10 +22,9 @@ data class ReviewEntity(
     val author: String,
     val content: String,
     val url: String,
-    val rating: Int,
+    val rating: Double,
     @ColumnInfo("avatar_path") val avatarPath: String,
     @ColumnInfo("created_at") val createdAt: String,
-    @ColumnInfo("updated_at") val updatedAt: String
 
 ){
     fun toReview():Review = Review(
@@ -34,8 +33,7 @@ data class ReviewEntity(
         author = author,
         content = content,
         url = url,
-        updatedAt = updatedAt,
-        rating = rating.toDouble(),
+        rating = rating,
         avatarPath = avatarPath,
         createdAt = createdAt,
     )

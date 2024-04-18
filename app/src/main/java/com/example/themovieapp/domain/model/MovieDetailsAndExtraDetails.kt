@@ -29,6 +29,7 @@ data class MovieDetailsAndExtraDetails(
     val tagline: String?,
     val imdbId: String?,
     val recommendationMoviesList: List<Int>?,
-    val imagesPathList: List<String>?,
+    val postersPathList: List<String>?,
+    val backdropsPathList: List<String>?,
     val videoLink: String?,
 )

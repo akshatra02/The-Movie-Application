@@ -9,7 +9,7 @@ import com.example.themovieapp.domain.model.Movie
 data class MovieEntity(
     @PrimaryKey val id: Int,
     @ColumnInfo(name = "category") val category: String,
-    @ColumnInfo(name = "is_favourite")val isFavourite: Boolean,
+    @ColumnInfo(name = "is_favourite") var isFavourite: Boolean,
 
     @ColumnInfo(name = "adult") val adult: Boolean,
     @ColumnInfo(name = "backdrop_path") val backdropPath: String,

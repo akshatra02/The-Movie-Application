@@ -29,7 +29,6 @@ data class CastDto(
             knowForDepartment = knownForDepartment ?: "",
             order = order ?: -1,
             profilePath = profilePath ?: "",
-            originalName = originalName ?: "",
             isCast = true,
         )
 }

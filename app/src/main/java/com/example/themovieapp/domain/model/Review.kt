@@ -11,5 +11,4 @@ data class Review(
     val rating: Double,
     val avatarPath: String?,
     val createdAt: String,
-    val updatedAt: String,
 )

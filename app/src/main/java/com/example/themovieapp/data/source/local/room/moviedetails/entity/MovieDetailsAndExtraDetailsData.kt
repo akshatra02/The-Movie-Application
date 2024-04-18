@@ -31,7 +31,8 @@ data class MovieDetailsAndExtraDetailsData(
     val tagline: String?,
     @ColumnInfo("imdb_id") val imdbId: String?,
     @ColumnInfo("recommendation_movies_list") val recommendationMoviesList: String?,
-    @ColumnInfo("images_path_list") val imagesPathList: String?,
+    @ColumnInfo("posters_path_list") val postersPathList: String?,
+    @ColumnInfo("backdrops_path_list") val backdropsPathList: String?,
     @ColumnInfo("video_link") val videoLink: String?,
 )
 {
@@ -72,6 +73,7 @@ fun toMovieDetailsAndExtraDetails(): MovieDetailsAndExtraDetails = MovieDetailsA
         listOf(-1, -2)
     },
     videoLink = videoLink,
-    imagesPathList = imagesPathList?.replace("[","")?.replace("]","")?.split(", "),
+    postersPathList = postersPathList?.replace("[","")?.replace("]","")?.split(", "),
+    backdropsPathList = backdropsPathList?.replace("[","")?.replace("]","")?.split(", "),
 )
 }

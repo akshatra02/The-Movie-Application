@@ -25,7 +25,6 @@ data class CastAndCrewEntity(
     val order: Int,
     @ColumnInfo("is_cast") val isCast: Boolean,
     @ColumnInfo("profile_path") val profilePath: String,
-    @ColumnInfo("original_name") val originalName: String,
 ){
     fun toCastAndCrew() : CastAndCrew = CastAndCrew(
         personId = personId,
@@ -35,7 +34,6 @@ data class CastAndCrewEntity(
         knowForDepartment = knowForDepartment,
         order = order,
         profilePath = profilePath,
-        originalName = originalName,
         isCast = isCast,
     )
 }

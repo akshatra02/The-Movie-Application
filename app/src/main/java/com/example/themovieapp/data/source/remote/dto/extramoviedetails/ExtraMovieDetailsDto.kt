@@ -34,9 +34,10 @@ data class ExtraMovieDetailsDto(
     val category: String,
     val isFavourite: Boolean,
     val videoLink: String?,
-    val imagesPathList: String?,
+    val postersPathList: String?,
+    val backdropsPathList: String?,
 ) {
-    fun toExtraMovieDetailsEntity(recommendationMoviesList: List<Int>,imagesPathList: String, videoLink: String) = ExtraMovieDetailsEntity(
+    fun toExtraMovieDetailsEntity(recommendationMoviesList: List<Int>,postersPathList: String,backdropsPathList: String, videoLink: String) = ExtraMovieDetailsEntity(
         movieId = id ?: 0,
         budget = budget ?: 0,
         homepage = homepage ?: "",
@@ -46,7 +47,8 @@ data class ExtraMovieDetailsDto(
         status = status ?: "",
         tagline = tagline ?: "",
         recommendationMoviesList = recommendationMoviesList.toString(),
-        imagesPathList = imagesPathList,
+        postersPathList = postersPathList,
+        backdropsPathList = backdropsPathList,
         videoLink = videoLink,
 
     )

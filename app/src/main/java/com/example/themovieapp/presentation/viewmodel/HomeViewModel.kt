@@ -1,19 +1,26 @@
 package com.example.themovieapp.presentation.viewmodel
 
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.usecase.GetMoviesByCategoryUseCase
 import com.example.themovieapp.utils.Category
-import com.example.themovieapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.themovieapp.utils.Result
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import kotlin.math.log
 
 
 @HiltViewModel
@@ -43,7 +50,7 @@ class HomeViewModel @Inject constructor(
     )
 
     init {
-        getMovies(Category.NOW_PLAYING, false)
+       getMovies(Category.NOW_PLAYING, false)
         getMovies(Category.UPCOMING, false)
         getMovies(Category.TOP_RATED, false)
         getMovies(Category.POPULAR, false)
@@ -56,53 +63,59 @@ class HomeViewModel @Inject constructor(
     private fun getMovies(
         category: String, forceFetchFromRemote: Boolean,
     ) {
-        viewModelScope.launch {
-            val _uiState: MutableStateFlow<MovieUiState>? = categories[category]
+        viewModelScope.launch(Dispatchers.IO) {
+            val _uiState :  MutableStateFlow<MovieUiState>? = categories[category]
+            val uiState = _uiState?.asStateFlow()
+
             if (_uiState != null) {
                 _uiState.update { it.copy(isLoading = true) }
 
-                getMoviesByCategoryUseCase(category, forceFetchFromRemote, _uiState.value.page)
-                    .collectLatest { result ->
-                        when (result) {
-                            is Resource.Error -> {
-                                _uiState.update {
-                                    it.copy(
-                                        isLoading = false
-                                    )
-                                }
-                            }
+                val result =
+                    getMoviesByCategoryUseCase(category, forceFetchFromRemote, _uiState.value.page)
 
-                            is Resource.Loading -> {
-                                _uiState.update {
-                                    it.copy(
-                                        isLoading = result.isLoading
-                                    )
-                                }
-                            }
-
-                            is Resource.Success -> {
-                                result.data?.let { moviesList ->
-                                    poster = moviesList.random().posterPath
-                                    _uiState.update {
-                                        it.copy(
-                                            movieList = _uiState.value.movieList + moviesList,
-                                            page = _uiState.value.page + 1,
-                                            isLoading = false
-                                        )
-                                    }
-
-                                }
-                            }
-
+                when (result) {
+                    is Result.Error -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false
+                            )
                         }
+                        return@launch
+
                     }
+
+                    is Result.Loading -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = result.isLoading
+                            )
+                        }
+                        return@launch
+
+                    }
+
+                    is Result.Success -> {
+                        result.data?.collectLatest{ moviesList ->
+                            _uiState.update {
+                                it.copy(
+                                    movieList = _uiState.value.movieList + moviesList,
+                                    page = _uiState.value.page + 1,
+                                    isLoading = false
+                                )
+                            }
+                            return@collectLatest
+                        }
+                        return@launch
+                    }
+
+                }
             }
         }
     }
 }
 
 data class MovieUiState(
-    val movieList: List<Movie> = emptyList(),
+    val movieList: List<Movie?> = emptyList(),
     val page: Int = 1,
     val isLoading: Boolean = true,
 )

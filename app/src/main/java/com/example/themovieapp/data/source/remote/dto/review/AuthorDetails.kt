@@ -8,6 +8,6 @@ import kotlinx.serialization.Serializable
 data class AuthorDetails(
     @SerializedName("avatar_path") val avatarPath: String,
     val name: String,
-    val rating: Int,
+    val rating: Double,
     val username: String
 )

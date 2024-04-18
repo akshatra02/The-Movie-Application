@@ -20,8 +20,7 @@ data class ReviewDto(
         author = author ?: "",
         content = content ?: "",
         url = url ?: "",
-        updatedAt = updatedAt ?: "",
-        rating = authorDetails?.rating ?: 0,
+        rating = authorDetails?.rating?:0.0,
         avatarPath = authorDetails?.avatarPath ?: "",
         createdAt = createdAt ?: "",
     )

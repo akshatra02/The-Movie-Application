@@ -31,7 +31,9 @@ class MoviesNetworkModule {
     fun provideOkHttpClient() =
         OkHttpClient
             .Builder()
-            .connectTimeout(60,TimeUnit.SECONDS)
+            .connectTimeout(2, TimeUnit.MINUTES)
+            .writeTimeout(2, TimeUnit.MINUTES)
+            .readTimeout(2, TimeUnit.MINUTES)
             .addInterceptor(RequestInterceptor())
             .addInterceptor(interceptor)
             .build()

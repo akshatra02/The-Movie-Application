@@ -9,5 +9,4 @@ data class CastAndCrew(
     val role: String, //cast - character crew - job
     val knowForDepartment: String,
     val order: Int,
-    val originalName: String,
 )
