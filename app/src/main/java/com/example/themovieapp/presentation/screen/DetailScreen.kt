@@ -1,7 +1,6 @@
 package com.example.themovieapp.presentation.screen
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,16 +9,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleRight
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -42,7 +43,9 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,10 +60,11 @@ import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.model.MovieDetailsAndExtraDetails
 import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.components.MovieCard
-import com.example.themovieapp.presentation.components.PersonCard
+import com.example.themovieapp.presentation.components.loadingitems.LoadingPersonCard
+import com.example.themovieapp.presentation.components.cards.MovieCard
+import com.example.themovieapp.presentation.components.cards.PersonCard
 import com.example.themovieapp.presentation.components.RatingBar
-import com.example.themovieapp.presentation.components.ReviewCard
+import com.example.themovieapp.presentation.components.cards.ReviewCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
 import com.example.themovieapp.utils.TabPage
@@ -93,16 +97,6 @@ fun DetailScreen(
                         .padding(2.dp)
                         .fillMaxWidth()
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.movie_icon),
-                        contentDescription = "",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(
-                                CircleShape
-                            )
-                    )
                     movieAndExtraDetailUiState.movieAndExtraDetails?.let {
                         Text(
                             text = it.title, style = MaterialTheme.typography.headlineSmall
@@ -114,7 +108,7 @@ fun DetailScreen(
     }, bottomBar = {
         BottomAppBar {
             BottomTab(navController = navController,
-                tabPage = tabPage,
+                currentPage = tabPage,
                 onTabSelected = { tabPage = it })
         }
 
@@ -131,32 +125,45 @@ fun DetailScreen(
                         BackDrop(movieDetails = movie, modifier = Modifier.height(350.dp))
                         MovieContent(
                             movie = movie,
-                            onClickFavourite = { viewModel.addMovieToFavourite() },
+                            onClickFavourite = { viewModel.addMovieToFavourite(movie.id) },
                             modifier = Modifier
                         )
                         if (castAndCrewListUiState.isLoading) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(paddingValues),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
+                                LazyRow {
+                                    items(3) {
+                                        LoadingPersonCard()
+                                    }
+                                }
                         } else {
                             if (castAndCrewListUiState.castAndCrew.isNotEmpty()) {
                                 CastAndCrewContent(
                                     castAndCrewList = castAndCrewListUiState.castAndCrew,
-                                    castAndCrewForMovie = { navController.navigate(Screen.CastAndCrewScreen.route) })
+                                    isLoading = castAndCrewListUiState.isLoading,
+                                    castAndCrewForMovie = {
+                                        navController.navigate("${Screen.CastAndCrewScreen.route}/${movie.id}")
+                                    })
                             }
-                            Log.d("Aks",reviewListUiState.review.size.toString())
+                            Log.d("Aks", reviewListUiState.review.size.toString())
                             if (reviewListUiState.review.isNotEmpty()) {
 
-                                ReviewContent(reviewList = reviewListUiState.review)
+                                ReviewContent(
+                                    reviewList = reviewListUiState.review,
+                                    reviewForMovie = {
+                                        navController.navigate("${Screen.ReviewScreen.route}/${movie.id}")
+
+                                    })
                             }
-                            if (movieAndExtraDetailUiState.movieAndExtraDetails.imagesPathList?.isNotEmpty() == true) {
+                            if (movieAndExtraDetailUiState.movieAndExtraDetails.postersPathList?.isNotEmpty() == true) {
                                 MediaContent(
-                                    extraMovieDetails = movieAndExtraDetailUiState.movieAndExtraDetails
+                                    extraMovieDetails = movieAndExtraDetailUiState.movieAndExtraDetails,
+                                    modifier = Modifier,
+                                    moreBackDrops = {
+                                        navController.navigate("${Screen.BackdropScreen.route}/${movie.id}")
+                                    },
+                                    morePosters = {
+                                        navController.navigate("${Screen.PosterScreen.route}/${movie.id}")
+
+                                    }
                                 )
                             }
                             if (recommendedMovieListUiState.movieList.isNotEmpty()) {
@@ -324,20 +331,45 @@ fun MoreMovieContent(extraMovieDetails: MovieDetailsAndExtraDetails) {
             color = MaterialTheme.colorScheme.secondary,
         )
         if (extraMovieDetails.budget != 0L) {
-            Text(text = "Budget: ${extraMovieDetails.budget}")
+            Column {
+                ColumnView(
+                    label = "Budget: ",
+                    value = "$ ${extraMovieDetails.budget?.div(1000000)}M"
+                )
+            }
 
         }
         if (extraMovieDetails.revenue != 0L) {
-        Text(text = "Revenue: ${extraMovieDetails.revenue}")
+            ColumnView(label = "Revenue:", value = "$ ${extraMovieDetails.revenue?.div(1000000)}M")
         }
         val duration = extraMovieDetails.runtime?.toDuration(DurationUnit.MINUTES)
-        Text(text = "Duration: $duration")
-            Text(text = "Status: ${extraMovieDetails.status}")
+        ColumnView(label = "Duration: ", value = duration.toString())
+        ColumnView(label = "Status: ", value = extraMovieDetails.status.toString())
     }
 }
 
 @Composable
-fun CastAndCrewContent(castAndCrewList: List<CastAndCrew>, castAndCrewForMovie: () -> Unit = {}) {
+fun ColumnView(label: String, value: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.ExtraBold
+        )
+        Text(text = value, style = MaterialTheme.typography.titleLarge)
+    }
+
+}
+
+@Composable
+private fun CastAndCrewContent(
+    castAndCrewList: List<CastAndCrew>,
+    isLoading: Boolean,
+    castAndCrewForMovie: () -> Unit = {}
+) {
     var isCast by remember {
         mutableStateOf(true)
     }
@@ -352,8 +384,8 @@ fun CastAndCrewContent(castAndCrewList: List<CastAndCrew>, castAndCrewForMovie: 
         ) {
             Text(
                 text = "Cast",
-                style = MaterialTheme.typography.headlineSmall,
-                color = if (isCast)MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSecondary,
+                style = MaterialTheme.typography.titleLarge,
+                color = if (isCast) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSecondary,
                 textDecoration = if (isCast) TextDecoration.Underline else TextDecoration.None,
                 modifier = Modifier
                     .padding(start = 5.dp)
@@ -361,8 +393,8 @@ fun CastAndCrewContent(castAndCrewList: List<CastAndCrew>, castAndCrewForMovie: 
             )
             Text(
                 text = "Crew",
-                style = MaterialTheme.typography.headlineSmall,
-                color = if (!isCast)MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSecondary,
+                style = MaterialTheme.typography.titleLarge,
+                color = if (!isCast) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSecondary,
                 textDecoration = if (!isCast) TextDecoration.Underline else TextDecoration.None,
                 modifier = Modifier
                     .padding(start = 5.dp)
@@ -397,42 +429,101 @@ fun CastAndCrewContent(castAndCrewList: List<CastAndCrew>, castAndCrewForMovie: 
 }
 
 @Composable
-fun ReviewContent(reviewList: List<Review>) {
-    Text(
-        text = "Reviews :",
-        color = MaterialTheme.colorScheme.secondary,
-        style = MaterialTheme.typography.titleLarge
-    )
+fun ReviewContent(reviewList: List<Review>, reviewForMovie: () -> Unit = {}) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Reviews ",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier
+                    .padding(start = 5.dp),
+            )
+            Text(
+                text = reviewList.size.toString(),
+                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.headlineSmall
+            )
+        }
+        Text(
+            text = "Read All Reviews",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .clickable {
+                    reviewForMovie()
+                }
+        )
 
+    }
     LazyRow {
         items(reviewList.size) { index ->
             val review = reviewList[index]
-            val avatar = review.avatarPath ?: " "
             ReviewCard(
-                name = review.author,
-                content = review.content,
-                photo = avatar
-            ) {
+                review = review,
+                modifier = Modifier
+                    .height(250.dp),
+                overflow = TextOverflow.Ellipsis
 
-            }
+            )
         }
     }
 
 }
 
 @Composable
-fun MediaContent(extraMovieDetails: MovieDetailsAndExtraDetails) {
-    Text(
-        text = stringResource(R.string.media),
-        color = MaterialTheme.colorScheme.secondary,
-        style = MaterialTheme.typography.titleLarge
-    )
-    val imagesPathList =
-        extraMovieDetails.imagesPathList
+fun MediaContent(
+    extraMovieDetails: MovieDetailsAndExtraDetails,
+    modifier: Modifier = Modifier,
+    moreBackDrops: () -> Unit,
+    morePosters: () -> Unit
+) {
+    var isBackdrops by remember {
+        mutableStateOf(true)
+    }
+
+    val postersPathList = extraMovieDetails.postersPathList
+    val backdropsPathList = extraMovieDetails.backdropsPathList
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(top = 8.dp)
+    ) {
+
+        Text(
+            text = "Backdrops (${backdropsPathList?.size})",
+            style = MaterialTheme.typography.titleLarge,
+            color = if (isBackdrops) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSecondary,
+            textDecoration = if (isBackdrops) TextDecoration.Underline else TextDecoration.None,
+            modifier = Modifier
+                .padding(start = 5.dp)
+                .clickable { isBackdrops = true },
+
+            )
+        Text(
+            text = "Posters (${postersPathList?.size})",
+            style = MaterialTheme.typography.titleLarge,
+            color = if (!isBackdrops) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSecondary,
+            textDecoration = if (!isBackdrops) TextDecoration.Underline else TextDecoration.None,
+            modifier = Modifier
+                .padding(start = 5.dp)
+                .clickable { isBackdrops = false },
+        )
+
+    }
+    val mediaList = if (isBackdrops) backdropsPathList else postersPathList
     LazyRow {
-        imagesPathList?.size?.let {
-            items(it) { index ->
-                val imagesPath = imagesPathList[index]
+        if (mediaList != null) {
+            val itemCount = if (mediaList.size > 10) 10 else mediaList.size
+            items(itemCount) { index ->
+                val imagesPath = mediaList[index]
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current)
                         .data(MoviesApi.IMAGE_BASE_URL.plus(imagesPath))
@@ -441,9 +532,34 @@ fun MediaContent(extraMovieDetails: MovieDetailsAndExtraDetails) {
                     error = painterResource(id = R.drawable.ic_broken_image),
                     contentDescription = "hello",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .size(300.dp)
+                        .fillMaxSize()
+                        .padding(8.dp)
+                        .heightIn(min = 200.dp)
                 )
+                if (mediaList.size > 5) {
+                    if (index == itemCount - 1) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .heightIn(min = if (isBackdrops) 200.dp else 300.dp)
+                                .width(150.dp)
+                                .clickable {
+                                    if (isBackdrops) moreBackDrops() else
+                                        morePosters()
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "View More")
+                            Icon(
+                                imageVector = Icons.Default.ArrowCircleRight,
+                                contentDescription = "",
+                                modifier = Modifier.align(
+                                    Alignment.CenterEnd
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
     }

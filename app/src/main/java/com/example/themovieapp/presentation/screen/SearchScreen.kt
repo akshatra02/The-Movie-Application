@@ -6,41 +6,47 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -48,72 +54,82 @@ import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
+import com.example.themovieapp.presentation.components.loadingitems.LoadingRowCard
+import com.example.themovieapp.presentation.components.RatingBar
 import com.example.themovieapp.presentation.navigation.Screen
+import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
 import com.example.themovieapp.presentation.viewmodel.SearchMovieViewModel
 import com.example.themovieapp.utils.TabPage
+import com.example.themovieapp.utils.toDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
-    navController:NavController,
-    viewModel: SearchMovieViewModel = hiltViewModel()
+    navController: NavController,
+    searchViewModel: SearchMovieViewModel = hiltViewModel(),
+    movieViewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
+
     var tabPage by remember {
-        mutableStateOf(TabPage.HOME)
+        mutableStateOf(TabPage.SEARCH)
     }
-    val searchResult by viewModel.searchResults.collectAsStateWithLifecycle()
+    val searchResult by searchViewModel.searchResults.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
-    val searchQuery = viewModel.searchQuery
+    val searchQuery = searchViewModel.searchQuery
     Scaffold(
         topBar = {
-            TopAppBar(title = {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .fillMaxWidth()
-                ) {
-                    Image(painter = painterResource(R.drawable.movie_icon), contentDescription = "", contentScale = ContentScale.Crop, modifier = Modifier
-                        .size(36.dp)
-                        .clip(
-                            CircleShape
-                        ))
-                    Text(
-                        text = stringResource(R.string.search), style = MaterialTheme.typography.headlineSmall
-                    )
-                } },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate(Screen.HomeScreen.route) {
-                            popUpTo(Screen.HomeScreen.route) {
-                                inclusive = true
-                            }
-                        }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBackIosNew,
-                            contentDescription = ""
+            TopAppBar(
+                title = {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.movie_icon),
+                            contentDescription = "",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(
+                                    CircleShape
+                                )
+                        )
+                        Text(
+                            text = stringResource(R.string.search),
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.headlineMedium
                         )
                     }
-                }
+                },
             )
         },
         bottomBar = {
             BottomAppBar {
-                BottomTab(navController = navController, tabPage = tabPage, onTabSelected = { tabPage = it})
+                BottomTab(
+                    navController = navController,
+                    currentPage = tabPage,
+                    onTabSelected = { tabPage = it })
             }
 
         }
 
     ) { paddingValues ->
+if (searchResult.isEmpty()){
 
+    LazyColumn {
+        items(5) {
+            LoadingRowCard()
+        }}
+}
         SearchBar(
             modifier = Modifier
                 .padding(paddingValues),
             query = searchQuery,
             onQueryChange = {
-                viewModel.onSearchQueryChange(it)
+                searchViewModel.onSearchQueryChange(it)
             },
             onSearch = { keyboardController?.hide() },
             active = true,
@@ -123,30 +139,35 @@ fun SearchScreen(
                 Icon(imageVector = Icons.Default.Search, contentDescription = null)
             }
         ) {
-                if (searchResult.isEmpty()) {
-                    MovieListEmptyState()
-                } else {
+            if (searchResult.isEmpty()) {
+                MovieListEmptyState()
+            } else {
 
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(32.dp),
-                        contentPadding = PaddingValues(16.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(16.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
 
-                        items(
-                            count = searchResult.size,
-                            key = { index -> searchResult[index].id },
-                            itemContent = { index ->
-                                val movie = searchResult[index]
-                                MovieListItem(movie = movie, navController = navController)
-                            }
-                        )
-                    }
+                    items(
+                        count = searchResult.size,
+                        key = { index -> searchResult[index].id },
+                        itemContent = { index ->
+                            val movie = searchResult[index]
+                            MovieListItem(
+                                movie = movie,
+                                onClickFavourite = { movieViewModel.addMovieToFavourite(movie.id) },
+                                onClickMovieCard = { navController.navigate("${Screen.DetailScreen.route}/${movie.id}")}
+                            )
+                        }
+                    )
                 }
+            }
 
         }
     }
 }
+
 @Composable
 fun MovieListEmptyState(
     modifier: Modifier = Modifier
@@ -166,31 +187,90 @@ fun MovieListEmptyState(
         )
     }
 }
+
 @Composable
 fun MovieListItem(
     movie: Movie,
-    navController: NavController,
+    onClickMovieCard :() ->Unit,
+    onClickFavourite: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(movie.posterPath))
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            modifier = modifier
-                .size(50.dp)
-                .aspectRatio(.8f)
-        )
-        Text(
-            text = movie.title,
-            modifier = modifier
-                .clickable { navController.navigate("${Screen.DetailScreen.route}/${movie.id}") }
-                .align(Alignment.CenterVertically)
-        )
+    val rating = movie.voteAverage
+    val isFavourite = movie.isFavourite
 
+
+    Card(
+        modifier = modifier
+            .fillMaxSize()
+            .height(150.dp)
+            .padding(2.dp)
+            .clickable { onClickMovieCard() },
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
+    ) {
+        Row() {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(MoviesApi.IMAGE_BASE_URL.plus(movie.posterPath))
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                modifier = modifier.fillMaxHeight(),
+            )
+            Column(
+                verticalArrangement = Arrangement.SpaceEvenly,
+                modifier = modifier
+                    .padding(8.dp)
+                    .fillMaxSize()
+            ) {
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = movie.genreNames.toString().replace("[", "").replace("]", "")
+                            .replace(", ", " • "),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontStyle = FontStyle.Italic,
+                        modifier = modifier
+                            .alpha(0.6f)
+                    )
+                    Icon(
+                        imageVector = if (isFavourite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "",
+                        modifier = modifier
+                            .clickable { onClickFavourite() })
+                }
+                Text(
+                    text = movie.title,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.titleMedium,
+
+                    )
+
+                Text(
+                    text = toDate(movie.releaseDate),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontStyle = FontStyle.Italic,
+                    modifier = modifier
+                        .alpha(0.6f)
+                )
+                Row(
+                    modifier = modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.rating_score).format(rating),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    if (rating != null) {
+                        RatingBar(rating)
+                    }
+
+                }
+            }
+
+        }
     }
 }

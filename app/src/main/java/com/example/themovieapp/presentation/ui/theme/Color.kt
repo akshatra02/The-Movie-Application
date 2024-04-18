@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 val Red80 = Color(0xFFE91E63)
 val PinkishRed = Color(0xFFBE4E79)
-val Orange80  = Color(0xFFFECFBF)
+val Orange80  = Color(0xFFFEBFDB)
 
 val Red40 = Color(0xFF990336)
 val GrapePurple = Color(0xFF600A4E)

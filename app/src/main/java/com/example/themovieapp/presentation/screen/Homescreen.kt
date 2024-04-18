@@ -18,19 +18,15 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +49,8 @@ import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.components.MovieCard
+import com.example.themovieapp.presentation.components.loadingitems.LoadingMovieCard
+import com.example.themovieapp.presentation.components.cards.MovieCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.HomeViewModel
 import com.example.themovieapp.utils.Category
@@ -69,47 +66,41 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     var tabPage by remember {
         mutableStateOf(TabPage.HOME)
     }
+    val showContent by remember {
+        derivedStateOf {
+            nowPlayingUiState.movieList.isEmpty() && topRatedUiState.movieList.isEmpty() && popularUiState.movieList.isEmpty()&& upcomingUiState.movieList.isEmpty()
+        }
+    }
     Scaffold(topBar = {
         TopAppBar(title = {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(2.dp)
                     .fillMaxWidth()
             ) {
                 Image(painter = painterResource(R.drawable.movie_icon), contentDescription = "", contentScale = ContentScale.Crop, modifier = Modifier
-                    .size(40.dp)
+                    .size(36.dp)
                     .clip(
                         CircleShape
                     ))
                 Text(
-                    text = stringResource(R.string.movies), style = MaterialTheme.typography.headlineMedium
+                    text = stringResource(R.string.movies),
+                    color = MaterialTheme.colorScheme.secondary,
+                    style = MaterialTheme.typography.headlineMedium
+                    ,
                 )
-            }
-        }, actions = {
-            IconButton(onClick = { navController.navigate(Screen.SearchScreen.route) }) {
-                Icon(imageVector = Icons.Default.Search, contentDescription = null)
             }
         })
     }, bottomBar = {
         BottomAppBar {
             BottomTab(navController = navController,
-                tabPage = tabPage,
+                currentPage = tabPage,
                 onTabSelected = { tabPage = it })
         }
 
     }) { paddingValue ->
-        if (nowPlayingUiState.movieList.isEmpty() && topRatedUiState.movieList.isEmpty() && popularUiState.movieList.isEmpty()&& upcomingUiState.movieList.isEmpty() ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValue),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else {
             Column(
                 modifier = Modifier.padding(paddingValue)
 
@@ -135,7 +126,7 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
                             }
                         }
                     }
-                    items(items = categories) { item ->
+                    items(items = categories, key = {it.third}) { item ->
                         val titleResId = item.first
                         val movieListUi = item.second
                         val category = item.third
@@ -152,7 +143,6 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
             }
         }
     }
-}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -195,16 +185,18 @@ fun BackgroundWithTextAndButton(
 
 @Composable
 fun MovieLazyRow(
+    modifier: Modifier = Modifier,
     @StringRes title: Int,
     categoryMoreMovies: () -> Unit = {},
     isLoading: Boolean,
     loadMoreMovie: () -> Unit = {},
     movieList: List<Movie?>,
-    navController: NavController,
-    modifier: Modifier = Modifier
+    navController: NavController
 ) {
-    Column(modifier = modifier
-        .padding(16.dp)) {
+    Column(
+        modifier = modifier
+            .padding(16.dp)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -225,22 +217,31 @@ fun MovieLazyRow(
                     }
             )
         }
-        LazyRow {
-            items(movieList.size) { i ->
-                val currentUiState = movieList.get(i)
-                if (currentUiState != null) {
-                    MovieCard(
-                        title = currentUiState.title,
-                        date = currentUiState.releaseDate,
-                        rating = currentUiState.voteAverage,
-                        photo = currentUiState.posterPath,
-                        moreMovieDetails = {
-                            navController.navigate("${Screen.DetailScreen.route}/${currentUiState.id}")
-                        },
-                        modifier = modifier
-                    )
-                    if (i >= movieList.size - 1) {
-                        loadMoreMovie()
+        if (isLoading || movieList.isEmpty()) {
+
+            LazyRow {
+                items(3) {
+                    LoadingMovieCard()
+                }
+            }
+        } else {
+            LazyRow(modifier = modifier.padding(if (isLoading) 16.dp else 0.dp)) {
+                items(movieList.size) { i ->
+                    val currentUiState = movieList.get(i)
+                    if (currentUiState != null) {
+                        MovieCard(
+                            title = currentUiState.title,
+                            date = currentUiState.releaseDate,
+                            rating = currentUiState.voteAverage,
+                            photo = currentUiState.posterPath,
+                            moreMovieDetails = {
+                                navController.navigate("${Screen.DetailScreen.route}/${currentUiState.id}")
+                            },
+                            modifier = modifier
+                        )
+                        if (i >= movieList.size - 1) {
+                            loadMoreMovie()
+                        }
                     }
                 }
             }

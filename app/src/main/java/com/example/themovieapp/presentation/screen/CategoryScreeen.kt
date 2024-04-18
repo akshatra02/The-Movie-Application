@@ -1,16 +1,13 @@
 package com.example.themovieapp.presentation.screen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material3.BottomAppBar
@@ -30,19 +27,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.themovieapp.R
 import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.components.MovieCard
+import com.example.themovieapp.presentation.components.loadingitems.LoadingMovieCard
+import com.example.themovieapp.presentation.components.cards.MovieCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.CategoryViewModel
-import com.example.themovieapp.utils.Category
 import com.example.themovieapp.utils.TabPage
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,11 +68,6 @@ fun CategoryScreen(
                         .padding(2.dp)
                         .fillMaxWidth()
                 ) {
-                    Image(painter = painterResource(R.drawable.movie_icon), contentDescription = "", contentScale = ContentScale.Crop, modifier = Modifier
-                        .size(36.dp)
-                        .clip(
-                            CircleShape
-                        ))
                     Text(
                         text = stringResource(id = categoryHeading), style = MaterialTheme.typography.headlineSmall
                     )
@@ -103,20 +92,17 @@ fun CategoryScreen(
             BottomAppBar {
                 BottomTab(
                     navController = navController,
-                    tabPage = tabPage,
+                    currentPage = tabPage,
                     onTabSelected = { tabPage = it })
             }
 
         }
     ) { paddingValues ->
-        if (categoryUiState.movieList.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        if (categoryUiState.movieList.isEmpty() || categoryUiState.isLoading) {
+            LazyVerticalGrid(columns = GridCells.Fixed(2)) {
+                items(2) {
+                    LoadingMovieCard()
+                }
             }
         } else {
             LazyVerticalGrid(

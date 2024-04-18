@@ -1,16 +1,15 @@
 package com.example.themovieapp.presentation.components
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TabRow
@@ -29,58 +28,86 @@ import com.example.themovieapp.utils.TabPage
 
 @Composable
 fun BottomTab(
-    navController: NavController,
-    tabPage: TabPage,
-    onTabSelected: (tabPage: TabPage) -> Unit
+    navController: NavController, currentPage: TabPage, onTabSelected: (tabPage: TabPage) -> Unit
 
 ) {
     TabRow(
-        selectedTabIndex = tabPage.ordinal,
-        modifier = Modifier
-            .fillMaxWidth(),
-
+        selectedTabIndex = currentPage.ordinal,
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.secondary,
     ) {
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly,
-
-        ) {
-            SingleTab(title = stringResource(R.string.home), icon = Icons.Default.Home, onclick = {
+        TabItem(title = stringResource(R.string.home),
+            icon = Icons.Default.Home,
+            selected = currentPage == TabPage.HOME,
+            onclick = {
                 onTabSelected(TabPage.HOME)
                 navController.navigate(
-                Screen.HomeScreen.route
-            )})
-            SingleTab(title = stringResource(R.string.favourite), icon = Icons.Default.Favorite, onclick = {
+                    Screen.HomeScreen.route
+                )
+                {
+                    navController.navigate(Screen.HomeScreen.route) {
+                        popUpTo(Screen.HomeScreen.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            })
+        TabItem(
+            title = stringResource(R.string.search),
+            icon = Icons.Default.Search,
+            selected = currentPage == TabPage.SEARCH,
+            onclick = {
+                onTabSelected(TabPage.SEARCH)
+                navController.navigate(
+                    Screen.SearchScreen.route
+                ) {
+                    navController.navigate(Screen.SearchScreen.route) {
+                        popUpTo(Screen.SearchScreen.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            })
+        TabItem(
+            title = stringResource(R.string.favourite),
+            icon = Icons.Default.Favorite,
+            selected = currentPage == TabPage.FAVOURITE,
+            onclick = {
                 onTabSelected(TabPage.FAVOURITE)
                 navController.navigate(
-                Screen.FavouriteScreen.route
-            )})
-        }
+                    Screen.FavouriteScreen.route
+                ) {
+                    navController.navigate(Screen.FavouriteScreen.route) {
+                        popUpTo(Screen.FavouriteScreen.route) {
+                            inclusive = true
+                        }
+                    }
+                }
+            })
     }
 }
 
 @Composable
-private fun SingleTab(
-    onclick : () -> Unit,
-    icon: ImageVector,
-    title: String
+private fun TabItem(
+    onclick: () -> Unit, selected: Boolean, icon: ImageVector, title: String
 
 ) {
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
+    Column(verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .padding(16.dp)
             .clickable {
                 onclick()
-            }
-    ) {
-        Icon(imageVector = icon, contentDescription = null)
+            }) {
+        Icon(
+            imageVector = icon, contentDescription = null,
+            tint = if (selected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary
+        )
         Spacer(modifier = Modifier.width(16.dp))
-        Text(text = title)
+        Text(
+            text = title,
+            color = if (selected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.secondary
+        )
     }
 
 }

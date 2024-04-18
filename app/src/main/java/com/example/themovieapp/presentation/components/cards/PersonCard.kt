@@ -1,7 +1,8 @@
-package com.example.themovieapp.presentation.components
+package com.example.themovieapp.presentation.components.cards
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -55,16 +57,20 @@ fun PersonCard(
                 .size(150.dp)
         )
         Column(
+            modifier = modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.Start
         ) {
             Text(
-                text = title, style = MaterialTheme.typography.titleLarge,
-                modifier = modifier.padding(start = 10.dp)
+                text = title, style = MaterialTheme.typography.titleMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = role,
-                modifier = modifier.padding(start = 10.dp).alpha(0.8f)
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = modifier.alpha(0.8f)
             )
         }
 

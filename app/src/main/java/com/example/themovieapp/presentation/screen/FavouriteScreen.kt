@@ -2,7 +2,9 @@ package com.example.themovieapp.presentation.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,7 +34,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.themovieapp.R
 import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.components.MovieCard
+import com.example.themovieapp.presentation.components.loadingitems.LoadingMovieCard
+import com.example.themovieapp.presentation.components.cards.MovieCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.FavouriteViewModel
 import com.example.themovieapp.utils.TabPage
@@ -48,7 +51,7 @@ fun FavouriteScreen(navController: NavController, viewModel: FavouriteViewModel 
         topBar = {
             TopAppBar(title = {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .padding(2.dp)
@@ -60,7 +63,9 @@ fun FavouriteScreen(navController: NavController, viewModel: FavouriteViewModel 
                             CircleShape
                         ))
                     Text(
-                        text = stringResource(R.string.favourite), style = MaterialTheme.typography.headlineMedium
+                        text = stringResource(R.string.favourite),
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.headlineMedium
                     )
                 }})
         },
@@ -68,12 +73,36 @@ fun FavouriteScreen(navController: NavController, viewModel: FavouriteViewModel 
             BottomAppBar {
                 BottomTab(
                     navController = navController,
-                    tabPage = tabPage,
+                    currentPage = tabPage,
                     onTabSelected = { tabPage = it })
 
             }
         }
     ) { paddingValues ->
+        if (favouriteUiState.isLoading){
+            LazyVerticalGrid(columns = GridCells.Fixed(2)) {
+                items(2) {
+                    LoadingMovieCard()
+                }
+            }
+        }
+        else if( favouriteUiState.movieList.isEmpty()){
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(
+                    text = stringResource(R.string.no_movies_found),
+                    style = MaterialTheme.typography.titleSmall
+                )
+                Text(
+                    text = "You haven't added any movies to your favourite.",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+        else{
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier.padding(paddingValues)
@@ -98,4 +127,4 @@ fun FavouriteScreen(navController: NavController, viewModel: FavouriteViewModel 
         }
     }
 
-}
+}}

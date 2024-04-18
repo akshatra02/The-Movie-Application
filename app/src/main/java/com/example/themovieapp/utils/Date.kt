@@ -17,6 +17,6 @@ fun toDate(date: String): String{
         11 -> "Nov"
         else -> "Dec"
     }
-    return "$month ${dateList.get(2)}, ${dateList.get(0)}"
+    return "$month ${dateList[2].substring(0,2)}, ${dateList[0]}"
 
 }
