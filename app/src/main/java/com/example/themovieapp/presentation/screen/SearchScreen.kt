@@ -54,6 +54,7 @@ import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.BottomTab
+import com.example.themovieapp.presentation.components.Header
 import com.example.themovieapp.presentation.components.loadingitems.LoadingRowCard
 import com.example.themovieapp.presentation.components.RatingBar
 import com.example.themovieapp.presentation.navigation.Screen
@@ -70,60 +71,17 @@ fun SearchScreen(
     movieViewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
 
-    var tabPage by remember {
+    val tabPage by remember {
         mutableStateOf(TabPage.SEARCH)
     }
     val searchResult by searchViewModel.searchResults.collectAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
-    val searchQuery = searchViewModel.searchQuery
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .padding(2.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.movie_icon),
-                            contentDescription = "",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(
-                                    CircleShape
-                                )
-                        )
-                        Text(
-                            text = stringResource(R.string.search),
-                            color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            BottomAppBar {
-                BottomTab(
-                    navController = navController,
-                    currentPage = tabPage,
-                    onTabSelected = { tabPage = it })
-            }
-
-        }
-
-    ) { paddingValues ->
-if (searchResult.isEmpty()){
-
-    LazyColumn {
-        items(5) {
-            LoadingRowCard()
-        }}
-}
+    val searchQuery = remember {
+        searchViewModel.searchQuery
+    }
+    Header(title = R.string.search, navController = navController, tabPage = tabPage)
+    { paddingValues ->
+        val isEmpty = searchResult.isEmpty()
         SearchBar(
             modifier = Modifier
                 .padding(paddingValues),
@@ -139,7 +97,7 @@ if (searchResult.isEmpty()){
                 Icon(imageVector = Icons.Default.Search, contentDescription = null)
             }
         ) {
-            if (searchResult.isEmpty()) {
+            if (isEmpty) {
                 MovieListEmptyState()
             } else {
 
@@ -157,13 +115,12 @@ if (searchResult.isEmpty()){
                             MovieListItem(
                                 movie = movie,
                                 onClickFavourite = { movieViewModel.addMovieToFavourite(movie.id) },
-                                onClickMovieCard = { navController.navigate("${Screen.DetailScreen.route}/${movie.id}")}
+                                onClickMovieCard = { navController.navigate("${Screen.DetailScreen.route}/${movie.id}/${tabPage.name}") }
                             )
                         }
                     )
                 }
             }
-
         }
     }
 }
@@ -191,7 +148,7 @@ fun MovieListEmptyState(
 @Composable
 fun MovieListItem(
     movie: Movie,
-    onClickMovieCard :() ->Unit,
+    onClickMovieCard: () -> Unit,
     onClickFavourite: () -> Unit,
     modifier: Modifier = Modifier
 ) {

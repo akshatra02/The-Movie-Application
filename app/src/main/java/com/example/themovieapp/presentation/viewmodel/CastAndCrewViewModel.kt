@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.themovieapp.domain.usecase.GetCastAndCrewUseCase
-import com.example.themovieapp.domain.usecase.GetExtraMovieDetailsUsecase
 import com.example.themovieapp.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

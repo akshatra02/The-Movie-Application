@@ -54,14 +54,16 @@ class MovieDetailsViewModel @Inject constructor(
     val movieId = savedStateHandle.get<Int>("movieId")
 
     init {
-        getExtraMovieDetails()
-        getMovieDetails()
+
+        if (movieId != null) {
+            getMovieDetails(movieId)
+            getExtraMovieDetails(movieId)
+        }
     }
 
-    fun getMovieDetails() {
+    private fun getMovieDetails(movieId: Int) {
         _movieAndExtraDetailUiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            if (movieId != null) {
                 val result = getMovieByIdUseCase(movieId)
                 when (result) {
                     is Result.Error ->
@@ -84,14 +86,12 @@ class MovieDetailsViewModel @Inject constructor(
                             }
                         }
                     }
-                }
             }
         }
     }
 
-    fun getExtraMovieDetails() {
+    private fun getExtraMovieDetails(movieId :Int) {
         viewModelScope.launch {
-            if (movieId != null) {
                 _movieAndExtraDetailUiState.update { it.copy(isLoading = true) }
                 val result = addExtraMovieDetails(movieId)
                 when (result) {
@@ -207,7 +207,6 @@ class MovieDetailsViewModel @Inject constructor(
 
                 }
             }
-        }
     }
 
     fun addMovieToFavourite(id: Int) {
@@ -224,7 +223,7 @@ class MovieDetailsViewModel @Inject constructor(
                     favorite = movie.isFavourite, media_id = id, media_type = "movie"
                 )
             }
-            val result = favouriteBody?.let { addFavouriteMoviesUseCase(it) }
+            favouriteBody?.let { addFavouriteMoviesUseCase(it) }
         }
     }
 }

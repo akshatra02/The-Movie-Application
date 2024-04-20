@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.themovieapp.domain.usecase.GetMoviesByCategoryUseCase
+import com.example.themovieapp.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,7 +12,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.themovieapp.utils.Result
 
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
@@ -58,11 +58,11 @@ class CategoryViewModel @Inject constructor(
                 }
 
                 is Result.Success ->
-                    result.data?.collectLatest { movieList ->
+                    result.data?.collectLatest{ movieList ->
                         _movieListUiState.update {
                             it.copy(
-                                movieList = _movieListUiState.value.movieList + movieList,
-                                page = _movieListUiState.value.page + 1,
+                                movieList = movieListUiState.value.movieList + movieList,
+                                page = movieListUiState.value.page + 1,
                                 isLoading = false
 
                             )

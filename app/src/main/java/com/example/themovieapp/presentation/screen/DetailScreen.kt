@@ -17,15 +17,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleRight
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -59,12 +56,12 @@ import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.model.MovieDetailsAndExtraDetails
 import com.example.themovieapp.domain.model.Review
-import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.components.loadingitems.LoadingPersonCard
+import com.example.themovieapp.presentation.components.Header
+import com.example.themovieapp.presentation.components.RatingBar
 import com.example.themovieapp.presentation.components.cards.MovieCard
 import com.example.themovieapp.presentation.components.cards.PersonCard
-import com.example.themovieapp.presentation.components.RatingBar
 import com.example.themovieapp.presentation.components.cards.ReviewCard
+import com.example.themovieapp.presentation.components.loadingitems.LoadingPersonCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
 import com.example.themovieapp.utils.TabPage
@@ -78,41 +75,19 @@ import kotlin.time.toDuration
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
-    navController: NavController, viewModel: MovieDetailsViewModel = hiltViewModel()
+    navController: NavController,tabPageString: String, viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
-    var tabPage by remember {
-        mutableStateOf(TabPage.HOME)
+
+    val tabPage by remember {
+        mutableStateOf(TabPage.valueOf(tabPageString))
     }
     val recommendedMovieListUiState by viewModel.recommendedMovieListUiState.collectAsState()
     val castAndCrewListUiState by viewModel.castAndCrewListUiState.collectAsState()
     val reviewListUiState by viewModel.reviewListUiState.collectAsState()
     val movieAndExtraDetailUiState = viewModel.movieAndExtraDetailUiState.collectAsState().value
-    Scaffold(topBar = {
-        TopAppBar(
-            title = {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .fillMaxWidth()
-                ) {
-                    movieAndExtraDetailUiState.movieAndExtraDetails?.let {
-                        Text(
-                            text = it.title, style = MaterialTheme.typography.headlineSmall
-                        )
-                    }
-                }
-            },
-        )
-    }, bottomBar = {
-        BottomAppBar {
-            BottomTab(navController = navController,
-                currentPage = tabPage,
-                onTabSelected = { tabPage = it })
-        }
-
-    }) { paddingValues ->
+    val title =  movieAndExtraDetailUiState.movieAndExtraDetails?.title ?: ""
+    Header(title,navController,tabPage)
+     { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .padding(paddingValues),
@@ -185,7 +160,7 @@ fun DetailScreen(
 
 
 @Composable
-fun BackDrop(
+private fun BackDrop(
     movieDetails: MovieDetailsAndExtraDetails, modifier: Modifier = Modifier
 ) {
     Box(
@@ -222,7 +197,7 @@ fun BackDrop(
 }
 
 @Composable
-fun MovieContent(
+private fun MovieContent(
     movie: MovieDetailsAndExtraDetails,
     onClickFavourite: () -> Unit,
     modifier: Modifier
@@ -317,7 +292,7 @@ fun MovieContent(
 }
 
 @Composable
-fun MoreMovieContent(extraMovieDetails: MovieDetailsAndExtraDetails) {
+private fun MoreMovieContent(extraMovieDetails: MovieDetailsAndExtraDetails) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -349,7 +324,7 @@ fun MoreMovieContent(extraMovieDetails: MovieDetailsAndExtraDetails) {
 }
 
 @Composable
-fun ColumnView(label: String, value: String) {
+private fun ColumnView(label: String, value: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -429,7 +404,7 @@ private fun CastAndCrewContent(
 }
 
 @Composable
-fun ReviewContent(reviewList: List<Review>, reviewForMovie: () -> Unit = {}) {
+private fun ReviewContent(reviewList: List<Review>, reviewForMovie: () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -478,7 +453,7 @@ fun ReviewContent(reviewList: List<Review>, reviewForMovie: () -> Unit = {}) {
 }
 
 @Composable
-fun MediaContent(
+private fun MediaContent(
     extraMovieDetails: MovieDetailsAndExtraDetails,
     modifier: Modifier = Modifier,
     moreBackDrops: () -> Unit,
@@ -567,7 +542,7 @@ fun MediaContent(
 }
 
 @Composable
-fun RecommendationContent(recommendedMovieList: List<Movie?>, navController: NavController) {
+private fun RecommendationContent(recommendedMovieList: List<Movie?>, navController: NavController) {
     Text(
         text = stringResource(R.string.recommended_movies),
         color = MaterialTheme.colorScheme.secondary,
@@ -593,7 +568,7 @@ fun RecommendationContent(recommendedMovieList: List<Movie?>, navController: Nav
 }
 
 @Composable
-fun VideoPlayer(
+private fun VideoPlayer(
     videoId: String,
     lifecycleOwner: LifecycleOwner
 ) {

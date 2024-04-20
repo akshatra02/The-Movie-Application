@@ -1,13 +1,12 @@
 package com.example.themovieapp.presentation.viewmodel
 
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.usecase.GetMoviesByCategoryUseCase
 import com.example.themovieapp.utils.Category
+import com.example.themovieapp.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,12 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.example.themovieapp.utils.Result
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
-import kotlin.math.log
 
 
 @HiltViewModel
@@ -40,7 +34,6 @@ class HomeViewModel @Inject constructor(
 
     private val _popularUiState = MutableStateFlow(MovieUiState())
     val popularUiState = _popularUiState.asStateFlow()
-    var poster: String? = null
 
     val categories = mapOf(
         Pair(Category.NOW_PLAYING, _nowPlayingUiState),
@@ -103,9 +96,7 @@ class HomeViewModel @Inject constructor(
                                     isLoading = false
                                 )
                             }
-                            return@collectLatest
                         }
-                        return@launch
                     }
 
                 }

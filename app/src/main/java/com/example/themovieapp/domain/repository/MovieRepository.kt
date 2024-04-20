@@ -19,12 +19,4 @@ interface MovieRepository {
     suspend fun getMovieByIdStream(id: Int): Result<Flow<Movie?>>
     fun getAllMoviesStream(): Flow<List<Movie>>
 
-//    suspend fun getExtraMovieDetails(id: Int): Result<Flow<MovieDetailsAndExtraDetails>>
-//
-//    suspend fun getCastAndCrewStream(id: Int): Result<Flow<List<CastAndCrew>>>
-//
-//    suspend fun getMovieReviewStream(id: Int): Result<Flow<List<Review>>>
-//
-//    suspend fun getMovieAndExtraDetails(id: Int): Result<Flow<MovieDetailsAndExtraDetails?>>
-
 }

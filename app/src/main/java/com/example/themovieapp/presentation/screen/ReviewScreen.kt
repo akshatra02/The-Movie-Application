@@ -8,16 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,9 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.themovieapp.domain.model.Review
-import com.example.themovieapp.presentation.components.BottomTab
-import com.example.themovieapp.presentation.components.loadingitems.LoadingRowCard
+import com.example.themovieapp.presentation.components.Header
 import com.example.themovieapp.presentation.components.cards.ReviewCard
+import com.example.themovieapp.presentation.components.loadingitems.LoadingRowCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
 import com.example.themovieapp.utils.TabPage
@@ -46,97 +39,72 @@ fun ReviewScreen(
     viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
 
-    var tabPage by remember {
+    val tabPage by remember {
         mutableStateOf(TabPage.HOME)
     }
-    val reviewListUiState = viewModel.reviewListUiState.collectAsState().value
-    val movieAndExtraDetailUiState = viewModel.movieAndExtraDetailUiState.collectAsState().value
+    val reviewListUiState by viewModel.reviewListUiState.collectAsState()
+    val movieAndExtraDetailUiState by viewModel.movieAndExtraDetailUiState.collectAsState()
     val reviewList = reviewListUiState.review
-    Scaffold(topBar = {
-        TopAppBar(
-            title = {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(2.dp)
-                        .fillMaxWidth()
-                ) {
-                    movieAndExtraDetailUiState.movieAndExtraDetails?.let {
-                        Text(
-                            text = it.title,
-                            color = MaterialTheme.colorScheme.secondary,
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                    }
-                }
-            },
-            navigationIcon = {
-                IconButton(onClick = {
-                    navController.navigate("${Screen.DetailScreen.route}/${movieAndExtraDetailUiState.movieAndExtraDetails?.id ?: -1}") {
-                        popUpTo("${Screen.DetailScreen.route}/${movieAndExtraDetailUiState.movieAndExtraDetails?.id ?: -1}") {
-                            inclusive = true
-                        }
-                    }
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBackIosNew,
-                        contentDescription = ""
-                    )
+    val title = movieAndExtraDetailUiState.movieAndExtraDetails?.title ?: ""
+    val movieId = movieAndExtraDetailUiState.movieAndExtraDetails?.id ?: -1
+    Header(
+        title = title, navController = navController,
+        navigateOnClick = {
+
+            navController.navigate("${Screen.DetailScreen.route}/${movieId}/${tabPage.name}") {
+                popUpTo("${Screen.DetailScreen.route}/${movieId}/${tabPage.name}") {
+                    inclusive = true
                 }
             }
-        )
-    }, bottomBar = {
-        BottomAppBar {
-            BottomTab(navController = navController,
-                currentPage = tabPage,
-                onTabSelected = { tabPage = it })
-        }
-
-    }) { paddingValues ->
+        },
+        tabPage = tabPage, showIcon = false, showBackButton = true,
+    )
+    { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             if (reviewListUiState.isLoading) {
 
                 LazyColumn {
                     items(5) {
                         LoadingRowCard()
-                    }}
+                    }
+                }
+            } else {
+                ReviewScreenContent(reviewList = reviewList)
             }
-            ReviewScreenContent(reviewList = reviewList)
         }
     }
 }
 
 @Composable
 fun ReviewScreenContent(reviewList: List<Review>, reviewForMovie: () -> Unit = {}) {
- Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Reviews ",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier
-                        .padding(start = 5.dp),
-                )
-            }
-
+            Text(
+                text = "Reviews ",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier
+                    .padding(start = 5.dp),
+            )
         }
-        LazyColumn{
-            items(reviewList.size) { index ->
-                val review = reviewList[index]
-                ReviewCard(
-                    review = review,
-                    modifier = Modifier
-                        .height(IntrinsicSize.Max),
-                    overflow = TextOverflow.Visible
 
-                )
-            }
+    }
+    LazyColumn {
+        items(reviewList.size) { index ->
+            val review = reviewList[index]
+            ReviewCard(
+                review = review,
+                modifier = Modifier
+                    .height(IntrinsicSize.Max),
+                overflow = TextOverflow.Visible
+
+            )
         }
     }
+}

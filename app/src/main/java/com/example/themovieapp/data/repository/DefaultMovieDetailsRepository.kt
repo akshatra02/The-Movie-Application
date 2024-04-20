@@ -20,26 +20,23 @@ class DefaultMovieDetailsRepository @Inject constructor(
     val moviesApiService: MoviesApi,
 ) : MovieDetailsRepository {
     override suspend fun getExtraMovieDetails(id: Int): Result<Flow<MovieDetailsAndExtraDetails>> {
-        var message: String? = null
-
         val movieDetails = movieEntityDao.getMovieDetailsAndExtraById(id)?.first()
         val hasExtraMovieDetails = movieDetails?.movieId
         if (hasExtraMovieDetails == null) {
-            try {
+            return try {
                 fetchAndInsertExtraMovieDetails(moviesApiService, movieEntityDao, id)
+                return Result.Success(movieEntityDao.getMovieDetailsAndExtraById(id)
+                    ?.map { it.toMovieDetailsAndExtraDetails() })
 
             } catch (e: HttpException) {
-                message = "Oops Something went wrong! Try again later."
+                Result.Error("Oops Something went wrong! Try again later.")
 
             } catch (e: IOException) {
-                message = "Couldn't reach server. Check your internet connection"
+                Result.Error("Couldn't reach server. Check your internet connection")
             }
         }
-        if (message == null) {
-            return Result.Success(movieEntityDao.getMovieDetailsAndExtraById(id)
-                ?.map { it.toMovieDetailsAndExtraDetails() })
-        }
-        return Result.Error(message.toString())
+        return Result.Success(movieEntityDao.getMovieDetailsAndExtraById(id)
+            ?.map { it.toMovieDetailsAndExtraDetails() })
     }
 
 
@@ -59,104 +56,99 @@ class DefaultMovieDetailsRepository @Inject constructor(
     }
 
     override suspend fun getCastAndCrewStream(id: Int): Result<Flow<List<CastAndCrew>>> {
-        var message: String? = null
         val castAndCrewEntityList = movieEntityDao.getCastByMovieId(id).first()
         if (castAndCrewEntityList.isEmpty()) {
-            try {
+            return try {
                 getCastAndCrew(moviesApiService, movieEntityDao, id)
+                Result.Success(movieEntityDao.getCastByMovieId(id)
+                    .map { resultCastAndCrewEntityList -> resultCastAndCrewEntityList.map { castAndCrewEntity -> castAndCrewEntity.toCastAndCrew() } })
+
 
             } catch (e: HttpException) {
-                message = "Oops Something went wrong! Try again later."
+                Result.Error(message = "Oops Something went wrong! Try again later.")
             } catch (e: IOException) {
 
-                message = "Couldn't reach server. Check your internet connection"
+                Result.Error(message = "Couldn't reach server. Check your internet connection")
 
             }
         }
-        return if (message == null) {
-            Result.Success(movieEntityDao.getCastByMovieId(id)
-                .map { resultCastAndCrewEntityList -> resultCastAndCrewEntityList.map { castAndCrewEntity -> castAndCrewEntity.toCastAndCrew() } })
-        } else {
-            Result.Error(message.toString())
-        }
+        return Result.Success(movieEntityDao.getCastByMovieId(id)
+            .map { resultCastAndCrewEntityList -> resultCastAndCrewEntityList.map { castAndCrewEntity -> castAndCrewEntity.toCastAndCrew() } })
     }
 
     override suspend fun getMovieReviewStream(id: Int): Result<Flow<List<Review>>> {
-        var message: String? = null
-
         val reviewListLocal = movieEntityDao.getMovieReviewById(id).first()
         if (reviewListLocal.isEmpty()) {
-            try {
+            return try {
                 getMovieReview(moviesApiService, movieEntityDao, id)
+                Result.Success(movieEntityDao.getMovieReviewById(id)
+                    .map { reviewEntityList -> reviewEntityList.map { reviewEntity -> reviewEntity.toReview() } })
+
 
             } catch (e: HttpException) {
-                message = "Oops Something went wrong! Try again later."
+                Result.Error(message = "Oops Something went wrong! Try again later.")
             } catch (e: IOException) {
-                message = "Couldn't reach server. Check your internet connection"
+                Result.Error(message = "Couldn't reach server. Check your internet connection")
 
             }
         }
-        if (message == null) {
-            return Result.Success(movieEntityDao.getMovieReviewById(id)
-                .map { reviewEntityList -> reviewEntityList.map { reviewEntity -> reviewEntity.toReview() } })
+        return Result.Success(movieEntityDao.getMovieReviewById(id)
+            .map { reviewEntityList -> reviewEntityList.map { reviewEntity -> reviewEntity.toReview() } })
 
+    }
+}
+
+    private suspend fun getCastAndCrew(
+        moviesApiService: MoviesApi, movieEntityDao: MovieEntityDao, movieId: Int
+    ) {
+        val getCreditsRemote = moviesApiService.getCastAndCrew(movieId)
+        val castMembers = getCreditsRemote.cast
+        castMembers.forEach { cast ->
+            movieEntityDao.insertCastAndCrew(cast.toCastAndCrewEntity(movieId))
         }
-        return Result.Error(message.toString())
-
-    }
-
-}
-private suspend fun getCastAndCrew(
-    moviesApiService: MoviesApi, movieEntityDao: MovieEntityDao, movieId: Int
-) {
-    val getCreditsRemote = moviesApiService.getCastAndCrew(movieId)
-    val castMembers = getCreditsRemote.cast
-    castMembers.forEach { cast ->
-        movieEntityDao.insertCastAndCrew(cast.toCastAndCrewEntity(movieId))
-    }
-    val crewMembers = getCreditsRemote.crew
-    crewMembers.forEach { crew ->
-        movieEntityDao.insertCastAndCrew(crew.toCastAndCrewEntity(movieId))
-    }
-
-}
-
-private suspend fun getMovieReview(
-    moviesApiService: MoviesApi, movieEntityDao: MovieEntityDao, movieId: Int
-) {
-    val reviewRemote = moviesApiService.getReviewsById(movieId)
-    reviewRemote.results
-    movieEntityDao.insertMovieReview(reviewRemote.results.map { it.toReviewEntity(movieId) })
-
-}
-
-private suspend fun fetchAndInsertExtraMovieDetails(
-    moviesApiService: MoviesApi,
-    movieEntityDao: MovieEntityDao,
-    movieId: Int,
-) {
-    val getExtraMovieDetailsRemote = moviesApiService.getExtraMovieDetailsById(movieId)
-    val getRecommendationList = moviesApiService.getRecommendationList(movieId)
-    val recommendedMovieListIds = mutableListOf<Int>()
-    if (getRecommendationList.results.isNotEmpty()) {
-        getRecommendationList.results.map { recommendedMovieListIds.add(it.id ?: -1) }
-        recommendedMovieListIds.forEach {
-            fetchAndInsertMovie(moviesApiService, movieEntityDao, it)
+        val crewMembers = getCreditsRemote.crew
+        crewMembers.forEach { crew ->
+            movieEntityDao.insertCastAndCrew(crew.toCastAndCrewEntity(movieId))
         }
+
     }
-    val getImageList = moviesApiService.getImages(movieId)
-    val postersList = getImageList.posters.map { it.filePath }
-    val backdropsList = getImageList.backdrops.map { it.filePath }
-    val logosList = getImageList.logos.map { it.filePath }
-    val postersPathList = postersList + logosList
-    val getVideoPath = moviesApiService.getVideo(movieId)
-    val videoPath = getVideoPath.results.find { it.type == "Trailer" }?.key ?: ""
-    val upsertExtraMovieDetailsTable = movieEntityDao.upsertExtraMovieDetails(
-        getExtraMovieDetailsRemote.toExtraMovieDetailsEntity(
-            recommendedMovieListIds,
-            postersPathList = postersPathList.toString(),
-            backdropsPathList = backdropsList.toString(),
-            videoPath,
+
+    private suspend fun getMovieReview(
+        moviesApiService: MoviesApi, movieEntityDao: MovieEntityDao, movieId: Int
+    ) {
+        val reviewRemote = moviesApiService.getReviewsById(movieId)
+        reviewRemote.results
+        movieEntityDao.insertMovieReview(reviewRemote.results.map { it.toReviewEntity(movieId) })
+
+    }
+
+    private suspend fun fetchAndInsertExtraMovieDetails(
+        moviesApiService: MoviesApi,
+        movieEntityDao: MovieEntityDao,
+        movieId: Int,
+    ) {
+        val getExtraMovieDetailsRemote = moviesApiService.getExtraMovieDetailsById(movieId)
+        val getRecommendationList = moviesApiService.getRecommendationList(movieId)
+        val recommendedMovieListIds = mutableListOf<Int>()
+        if (getRecommendationList.results.isNotEmpty()) {
+            getRecommendationList.results.map { recommendedMovieListIds.add(it.id ?: -1) }
+            recommendedMovieListIds.forEach {
+                fetchAndInsertMovie(moviesApiService, movieEntityDao, it)
+            }
+        }
+        val getImageList = moviesApiService.getImages(movieId)
+        val postersList = getImageList.posters.map { it.filePath }
+        val backdropsList = getImageList.backdrops.map { it.filePath }
+        val logosList = getImageList.logos.map { it.filePath }
+        val postersPathList = postersList + logosList
+        val getVideoPath = moviesApiService.getVideo(movieId)
+        val videoPath = getVideoPath.results.find { it.type == "Trailer" }?.key ?: ""
+        val upsertExtraMovieDetailsTable = movieEntityDao.upsertExtraMovieDetails(
+            getExtraMovieDetailsRemote.toExtraMovieDetailsEntity(
+                recommendedMovieListIds,
+                postersPathList = postersPathList.toString(),
+                backdropsPathList = backdropsList.toString(),
+                videoPath,
+            )
         )
-    )
-}
+    }

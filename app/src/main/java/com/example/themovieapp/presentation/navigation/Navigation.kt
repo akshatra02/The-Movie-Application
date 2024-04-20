@@ -1,20 +1,12 @@
 package com.example.themovieapp.presentation.navigation
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.Navigation
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.themovieapp.presentation.screen.BackDrop
 import com.example.themovieapp.presentation.screen.BackdropScreen
 import com.example.themovieapp.presentation.screen.CastAndCrewScreen
 import com.example.themovieapp.presentation.screen.CategoryScreen
@@ -49,12 +41,13 @@ fun Navigation(
             CategoryScreen(navController, category = category)
         }
         composable(
-            route = "${Screen.DetailScreen.route}/{movieId}",
-            arguments = listOf(navArgument("movieId") { type = NavType.IntType })
+            route = "${Screen.DetailScreen.route}/{movieId}/{tabPage}",
+            arguments = listOf(navArgument("movieId") { type = NavType.IntType },navArgument("tabPage") { type = NavType.StringType })
         ) { backStackEntry ->
             val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
-
-            DetailScreen(navController)
+            val tabPageString = backStackEntry.arguments?.getString("tabPage") ?: ""
+//            val tabPage = TabPage.valueOf(tabPageString)
+            DetailScreen(navController,tabPageString)
         }
         composable(
             route = "${Screen.CastAndCrewScreen.route}/{movieId}",
