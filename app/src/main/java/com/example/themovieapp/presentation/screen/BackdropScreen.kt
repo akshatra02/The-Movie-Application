@@ -25,11 +25,13 @@ import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.presentation.components.Header
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
+import com.example.themovieapp.utils.IMAGE_BASE_URL
 import com.example.themovieapp.utils.TabPage
 
 @Composable
-fun BackdropScreen(navController: NavController,
-                   viewModel: MovieDetailsViewModel = hiltViewModel()
+fun BackdropScreen(
+    navController: NavController,
+    viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
 
     val tabPage by remember {
@@ -37,48 +39,52 @@ fun BackdropScreen(navController: NavController,
     }
     val movieAndExtraDetailUiState by viewModel.movieAndExtraDetailUiState.collectAsState()
     val backdropsPathList = movieAndExtraDetailUiState.movieAndExtraDetails?.backdropsPathList
-    val title =  movieAndExtraDetailUiState.movieAndExtraDetails?.title ?: ""
+    val title = movieAndExtraDetailUiState.movieAndExtraDetails?.title ?: ""
     val movieId = movieAndExtraDetailUiState.movieAndExtraDetails?.id ?: -1
-Header(title = title , navController = navController, showIcon = false, showBackButton = true, tabPage = tabPage,
-    navigateOnClick = {
+    Header(title = title,
+        navController = navController,
+        showIcon = false,
+        showBackButton = true,
+        tabPage = tabPage,
+        navigateOnClick = {
 
-        navController.navigate("${Screen.DetailScreen.route}/${movieId}/${tabPage.name}") {
-            popUpTo("${Screen.DetailScreen.route}/${movieId}/${tabPage.name}") {
-                inclusive = true
+            navController.navigate("${Screen.DetailScreen.route}/${movieId}/${tabPage.name}") {
+                popUpTo("${Screen.DetailScreen.route}/${movieId}/${tabPage.name}") {
+                    inclusive = true
+                }
+            }
+        })
+    { paddingValues ->
+        if (backdropsPathList != null) {
+            Column(modifier = Modifier.padding(paddingValues)) {
+                Text(
+                    text = "Backdrops",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(8.dp)
+                )
+                ImagesGrid(backdropsPathList)
             }
         }
-    })
-    { paddingValues ->
-    if (backdropsPathList != null) {
-        Column(modifier = Modifier.padding(paddingValues)) {
-            Text(
-                text = "Backdrops",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(8.dp)
-            )
-            ImagesGrid(backdropsPathList)
-        }
-    }
     }
 }
 
 @Composable
-fun ImagesGrid(imageList : List<String>) {
+fun ImagesGrid(imageList: List<String>) {
     LazyVerticalGrid(columns = GridCells.Fixed(2)) {
-            items(imageList.size) { index ->
-                val imagesPath = imageList[index]
-                AsyncImage(
-                    model = ImageRequest.Builder(context = LocalContext.current)
-                        .data(MoviesApi.IMAGE_BASE_URL.plus(imagesPath))
-                        .crossfade(true)
-                        .build(),
-                    error = painterResource(id = R.drawable.ic_broken_image),
-                    contentDescription = "hello",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp)
-                )
-            }
+        items(imageList.size) { index ->
+            val imagesPath = imageList[index]
+            AsyncImage(
+                model = ImageRequest.Builder(context = LocalContext.current)
+                    .data(IMAGE_BASE_URL.plus(imagesPath))
+                    .crossfade(true)
+                    .build(),
+                error = painterResource(id = R.drawable.ic_broken_image),
+                contentDescription = "hello",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp)
+            )
         }
-
     }
+
+}

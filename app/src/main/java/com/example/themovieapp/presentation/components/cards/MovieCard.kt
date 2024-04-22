@@ -31,6 +31,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
+import com.example.themovieapp.utils.IMAGE_BASE_URL
 import com.example.themovieapp.utils.toDate
 
 
@@ -58,7 +59,7 @@ fun MovieCard(
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(context = LocalContext.current)
-                    .data(MoviesApi.IMAGE_BASE_URL.plus(photo))
+                    .data(IMAGE_BASE_URL.plus(photo))
                     .crossfade(true)
                     .build(),
                 error = painterResource(id = R.drawable.ic_broken_image),

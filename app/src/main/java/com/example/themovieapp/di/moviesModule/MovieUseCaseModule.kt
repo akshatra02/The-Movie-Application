@@ -8,8 +8,7 @@ import com.example.themovieapp.domain.usecase.AddFavouriteMovieUseCase
 import com.example.themovieapp.domain.usecase.GetAllMoviesUseCase
 import com.example.themovieapp.domain.usecase.GetCastAndCrewUseCase
 import com.example.themovieapp.domain.usecase.GetFavouriteMoviesUseCase
-import com.example.themovieapp.domain.usecase.GetExtraMovieDetailsUsecase
-import com.example.themovieapp.domain.usecase.GetMovieByIdUseCase
+import com.example.themovieapp.domain.usecase.GetExtraMovieDetailsUseCase
 import com.example.themovieapp.domain.usecase.GetMovieReviewUseCase
 import com.example.themovieapp.domain.usecase.GetMoviesByCategoryUseCase
 import dagger.Module
@@ -36,11 +35,6 @@ class MovieUseCaseModule {
 
     @Provides
     @Singleton
-    fun providesGetMovieByIdUseCase(movieRepository: MovieRepository): GetMovieByIdUseCase =
-        GetMovieByIdUseCase(movieRepository)
-
-    @Provides
-    @Singleton
     fun providesGetFavouriteMoviesUseCase(favouriteMovieRepository: FavoriteMovieRepository): GetFavouriteMoviesUseCase =
         GetFavouriteMoviesUseCase(favouriteMovieRepository)
 
@@ -61,8 +55,8 @@ class MovieUseCaseModule {
 
     @Provides
     @Singleton
-    fun providesGetExtraMovieDetailsUseCase(movieDetailsRepository: MovieDetailsRepository): GetExtraMovieDetailsUsecase =
-        GetExtraMovieDetailsUsecase(movieDetailsRepository)
+    fun providesGetExtraMovieDetailsUseCase(movieDetailsRepository: MovieDetailsRepository): GetExtraMovieDetailsUseCase =
+        GetExtraMovieDetailsUseCase(movieDetailsRepository)
 
     @Provides
     @Singleton

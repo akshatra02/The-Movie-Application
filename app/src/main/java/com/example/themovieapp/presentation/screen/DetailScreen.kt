@@ -64,6 +64,7 @@ import com.example.themovieapp.presentation.components.cards.ReviewCard
 import com.example.themovieapp.presentation.components.loadingitems.LoadingPersonCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
+import com.example.themovieapp.utils.IMAGE_BASE_URL
 import com.example.themovieapp.utils.TabPage
 import com.example.themovieapp.utils.toDate
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer
@@ -118,7 +119,6 @@ fun DetailScreen(
                                         navController.navigate("${Screen.CastAndCrewScreen.route}/${movie.id}")
                                     })
                             }
-                            Log.d("Aks", reviewListUiState.review.size.toString())
                             if (reviewListUiState.review.isNotEmpty()) {
 
                                 ReviewContent(
@@ -145,7 +145,8 @@ fun DetailScreen(
 
                                 RecommendationContent(
                                     recommendedMovieList = recommendedMovieListUiState.movieList,
-                                    navController = navController
+                                    navController = navController,
+                                    tabPage = tabPage
                                 )
                             }
                         }
@@ -169,7 +170,7 @@ private fun BackDrop(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.backdropPath)).crossfade(true)
+                .data(IMAGE_BASE_URL.plus(movieDetails.backdropPath)).crossfade(true)
                 .build(),
             error = painterResource(id = R.drawable.ic_broken_image),
             contentScale = ContentScale.Crop,
@@ -183,7 +184,7 @@ private fun BackDrop(
         )
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(movieDetails.posterPath)).crossfade(true)
+                .data(IMAGE_BASE_URL.plus(movieDetails.posterPath)).crossfade(true)
                 .build(),
 
             error = painterResource(id = R.drawable.ic_broken_image),
@@ -501,7 +502,7 @@ private fun MediaContent(
                 val imagesPath = mediaList[index]
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current)
-                        .data(MoviesApi.IMAGE_BASE_URL.plus(imagesPath))
+                        .data(IMAGE_BASE_URL.plus(imagesPath))
                         .crossfade(true)
                         .build(),
                     error = painterResource(id = R.drawable.ic_broken_image),
@@ -542,7 +543,7 @@ private fun MediaContent(
 }
 
 @Composable
-private fun RecommendationContent(recommendedMovieList: List<Movie?>, navController: NavController) {
+private fun RecommendationContent(recommendedMovieList: List<MovieDetailsAndExtraDetails?>, navController: NavController,tabPage: TabPage) {
     Text(
         text = stringResource(R.string.recommended_movies),
         color = MaterialTheme.colorScheme.secondary,
@@ -558,7 +559,7 @@ private fun RecommendationContent(recommendedMovieList: List<Movie?>, navControl
                     rating = recommendedMovie.voteAverage,
                     photo = recommendedMovie.posterPath,
                     moreMovieDetails = {
-                        navController.navigate("${Screen.DetailScreen.route}/${recommendedMovie.id}")
+                        navController.navigate("${Screen.DetailScreen.route}/${recommendedMovie.id}/${tabPage.name}")
 
                     })
             }

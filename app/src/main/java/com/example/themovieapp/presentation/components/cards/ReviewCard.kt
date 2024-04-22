@@ -31,6 +31,7 @@ import coil.request.ImageRequest
 import com.example.themovieapp.R
 import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Review
+import com.example.themovieapp.utils.IMAGE_BASE_URL
 import com.example.themovieapp.utils.toDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +61,7 @@ fun ReviewCard(
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current)
-                        .data(MoviesApi.IMAGE_BASE_URL.plus(avatar))
+                        .data(IMAGE_BASE_URL.plus(avatar))
                         .crossfade(true)
                         .build(),
                     error = painterResource(id = R.drawable.person),

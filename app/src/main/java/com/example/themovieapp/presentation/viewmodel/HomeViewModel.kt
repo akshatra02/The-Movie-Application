@@ -35,7 +35,7 @@ class HomeViewModel @Inject constructor(
     private val _popularUiState = MutableStateFlow(MovieUiState())
     val popularUiState = _popularUiState.asStateFlow()
 
-    val categories = mapOf(
+    private val categories = mapOf(
         Pair(Category.NOW_PLAYING, _nowPlayingUiState),
         Pair(Category.TOP_RATED, _topRatedUiState),
         Pair(Category.UPCOMING, _upcomingUiState),
@@ -50,7 +50,9 @@ class HomeViewModel @Inject constructor(
     }
 
     fun loadMore(category: String) {
+        categories[category]?.update { it.copy(isLoading = true) }
         getMovies(category, forceFetchFromRemote = true)
+        categories[category]?.update { it.copy(isLoading = false) }
     }
 
     private fun getMovies(
@@ -58,7 +60,6 @@ class HomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val _uiState :  MutableStateFlow<MovieUiState>? = categories[category]
-            val uiState = _uiState?.asStateFlow()
 
             if (_uiState != null) {
                 _uiState.update { it.copy(isLoading = true) }

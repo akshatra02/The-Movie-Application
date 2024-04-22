@@ -6,7 +6,6 @@ import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.MovieDetailsAndExtraDetails
 import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.domain.repository.MovieDetailsRepository
-import com.example.themovieapp.domain.repository.MovieRepository
 import com.example.themovieapp.utils.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -19,13 +18,13 @@ class DefaultMovieDetailsRepository @Inject constructor(
     val movieEntityDao: MovieEntityDao,
     val moviesApiService: MoviesApi,
 ) : MovieDetailsRepository {
-    override suspend fun getExtraMovieDetails(id: Int): Result<Flow<MovieDetailsAndExtraDetails>> {
-        val movieDetails = movieEntityDao.getMovieDetailsAndExtraById(id)?.first()
+    override suspend fun addExtraMovieDetails(id: Int): Result<Flow<MovieDetailsAndExtraDetails>> {
+        val movieDetails = movieEntityDao.getMovieDetailsById(id)?.first()
         val hasExtraMovieDetails = movieDetails?.movieId
         if (hasExtraMovieDetails == null) {
             return try {
                 fetchAndInsertExtraMovieDetails(moviesApiService, movieEntityDao, id)
-                return Result.Success(movieEntityDao.getMovieDetailsAndExtraById(id)
+                return Result.Success(movieEntityDao.getMovieDetailsById(id)
                     ?.map { it.toMovieDetailsAndExtraDetails() })
 
             } catch (e: HttpException) {
@@ -35,14 +34,14 @@ class DefaultMovieDetailsRepository @Inject constructor(
                 Result.Error("Couldn't reach server. Check your internet connection")
             }
         }
-        return Result.Success(movieEntityDao.getMovieDetailsAndExtraById(id)
+        return Result.Success(movieEntityDao.getMovieDetailsById(id)
             ?.map { it.toMovieDetailsAndExtraDetails() })
     }
 
 
     override suspend fun getMovieAndExtraDetails(id: Int): Result<Flow<MovieDetailsAndExtraDetails?>> {
         return try {
-            val getMovieById = movieEntityDao.getMovieDetailsAndExtraById(id)
+            val getMovieById = movieEntityDao.getMovieDetailsById(id)
             (Result.Success(getMovieById?.map { it.toMovieDetailsAndExtraDetails() }))
         } catch (e: HttpException) {
             Result.Error("Oops Something went wrong! Try again later.")
@@ -132,8 +131,8 @@ class DefaultMovieDetailsRepository @Inject constructor(
         val recommendedMovieListIds = mutableListOf<Int>()
         if (getRecommendationList.results.isNotEmpty()) {
             getRecommendationList.results.map { recommendedMovieListIds.add(it.id ?: -1) }
-            recommendedMovieListIds.forEach {
-                fetchAndInsertMovie(moviesApiService, movieEntityDao, it)
+            recommendedMovieListIds.forEach {recommendedMovieId ->
+                fetchAndInsertMovie(moviesApiService, movieEntityDao, recommendedMovieId)
             }
         }
         val getImageList = moviesApiService.getImages(movieId)
@@ -143,12 +142,31 @@ class DefaultMovieDetailsRepository @Inject constructor(
         val postersPathList = postersList + logosList
         val getVideoPath = moviesApiService.getVideo(movieId)
         val videoPath = getVideoPath.results.find { it.type == "Trailer" }?.key ?: ""
-        val upsertExtraMovieDetailsTable = movieEntityDao.upsertExtraMovieDetails(
+        val upsertExtraMovieDetailsTable = movieEntityDao.insertExtraMovieDetails(
             getExtraMovieDetailsRemote.toExtraMovieDetailsEntity(
-                recommendedMovieListIds,
+               recommendationMoviesList =  recommendedMovieListIds,
                 postersPathList = postersPathList.toString(),
                 backdropsPathList = backdropsList.toString(),
-                videoPath,
+              videoLink =   videoPath,
             )
         )
     }
+
+
+private suspend fun fetchAndInsertMovie(
+    moviesApiService: MoviesApi,
+    movieEntityDao: MovieEntityDao,
+    movieId: Int,
+) {
+    val movie = moviesApiService.getExtraMovieDetailsById(movieId)
+
+    val genreNames = movie.genres?.map { it.name }?.toList() ?: emptyList()
+    val genreIds = movie.genres?.map { it.id }?.toList() ?: emptyList()
+    val movieEntity = movie.toMovieEntity(
+        "",
+        genreNames.toString(),
+        genreIds.toString(),
+        movie.isFavourite,
+    )
+    movieEntityDao.upsertMovie(movieEntity)
+}

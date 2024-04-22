@@ -36,6 +36,25 @@ data class MovieDetailsAndExtraDetailsData(
     @ColumnInfo("video_link") val videoLink: String?,
 )
 {
+    fun toMovieEntity():MovieEntity = MovieEntity(
+        adult = adult ,
+        backdropPath = backdropPath,
+        originalLanguage = originalLanguage ?: "",
+        originalTitle = originalTitle ?: "",
+        overview = overview ,
+        popularity = popularity ,
+        posterPath = posterPath ,
+        releaseDate = releaseDate,
+        title = title,
+        video = video ,
+        voteAverage = voteAverage ?: 0.0,
+        voteCount = voteCount ?: 0,
+        id = id ,
+        category = category,
+        genreIds = genreIds,
+        genreNames = genreNames,
+        isFavourite = isFavourite,
+    )
 fun toMovieDetailsAndExtraDetails(): MovieDetailsAndExtraDetails = MovieDetailsAndExtraDetails(
     adult = adult ,
     backdropPath = backdropPath,

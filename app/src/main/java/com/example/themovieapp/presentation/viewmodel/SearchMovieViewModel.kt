@@ -21,7 +21,7 @@ class SearchMovieViewModel @Inject constructor(
 ) : ViewModel() {
     var searchQuery by mutableStateOf("")
         private set
-    val movieFlow = getAllMoviesUseCase()
+    private val movieFlow = getAllMoviesUseCase()
 
     val searchResults: StateFlow<List<Movie>> =
         snapshotFlow { searchQuery }

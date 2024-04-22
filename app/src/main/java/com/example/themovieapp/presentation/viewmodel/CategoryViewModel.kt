@@ -16,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
     private val getMoviesByCategoryUseCase: GetMoviesByCategoryUseCase,
-    private val savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _movieListUiState = MutableStateFlow(MovieUiState())
     val movieListUiState = _movieListUiState.asStateFlow()
@@ -61,8 +61,8 @@ class CategoryViewModel @Inject constructor(
                     result.data?.collectLatest{ movieList ->
                         _movieListUiState.update {
                             it.copy(
-                                movieList = movieListUiState.value.movieList + movieList,
-                                page = movieListUiState.value.page + 1,
+                                movieList = _movieListUiState.value.movieList + movieList,
+                                page = _movieListUiState.value.page + 1,
                                 isLoading = false
 
                             )

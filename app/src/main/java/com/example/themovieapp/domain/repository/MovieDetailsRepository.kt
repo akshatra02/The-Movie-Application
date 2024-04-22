@@ -7,7 +7,7 @@ import com.example.themovieapp.utils.Result
 import kotlinx.coroutines.flow.Flow
 
 interface MovieDetailsRepository {
-    suspend fun getExtraMovieDetails(id: Int): Result<Flow<MovieDetailsAndExtraDetails>>
+    suspend fun addExtraMovieDetails(id: Int): Result<Flow<MovieDetailsAndExtraDetails>>
 
     suspend fun getCastAndCrewStream(id: Int): Result<Flow<List<CastAndCrew>>>
 

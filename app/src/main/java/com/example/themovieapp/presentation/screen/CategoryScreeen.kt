@@ -46,7 +46,7 @@ fun CategoryScreen(
     { paddingValues ->
         val movies = categoryUiState.movieList
         val isLoading = categoryUiState.isLoading
-        if (movies.isEmpty() || isLoading) {
+        if (movies.isEmpty()) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2), modifier = Modifier.padding(paddingValues)
             ) {
@@ -74,14 +74,7 @@ fun CategoryScreen(
                             })
 
                         if (i == movies.lastIndex && !isLoading) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(paddingValues),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
+                            LoadingMovieCard()
                             LaunchedEffect(movies) {
                                 viewModel.loadMore()
                             }

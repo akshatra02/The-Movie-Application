@@ -5,7 +5,6 @@ import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.repository.FavoriteMovieRepository
-import com.example.themovieapp.domain.repository.MovieRepository
 import com.example.themovieapp.utils.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -41,13 +40,13 @@ class DefaultFavoriteMovieRepository  @Inject constructor(
 
     override suspend fun addMovieToFavourite(movie: FavouriteBody): Boolean {
         val response = moviesApiService.addMovieToFavourite(RAW_BODY = movie)
-        val getMovie = movieEntityDao.getMovieById(movie.media_id).first()
+        val getMovie = movieEntityDao.getMovieDetailsById(movie.media_id)?.first()
         if (response.isSuccessful) {
             val updateMovie = getMovie?.copy(
                 isFavourite = !getMovie.isFavourite
             )
             if (updateMovie != null) {
-                movieEntityDao.updateMovie(updateMovie)
+                movieEntityDao.upsertMovie(updateMovie.toMovieEntity())
                 return true
             }
         }

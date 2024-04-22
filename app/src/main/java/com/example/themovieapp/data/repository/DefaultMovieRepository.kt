@@ -1,14 +1,9 @@
 package com.example.themovieapp.data.repository
 
-import android.util.Log
 import com.example.themovieapp.data.source.local.room.moviedetails.MovieEntityDao
 import com.example.themovieapp.data.source.remote.MoviesApi
-import com.example.themovieapp.data.source.remote.dto.favorites.FavouriteBody
 import com.example.themovieapp.data.source.remote.dto.movielist.GenreDto
-import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.Movie
-import com.example.themovieapp.domain.model.MovieDetailsAndExtraDetails
-import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.domain.repository.MovieRepository
 import com.example.themovieapp.utils.Result
 import kotlinx.coroutines.flow.Flow
@@ -45,22 +40,6 @@ class DefaultMovieRepository @Inject constructor(
         }
 
     }
-
-    override suspend fun getMovieByIdStream(id: Int): Result<Flow<Movie?>> {
-
-        return try {
-            Result.Success(movieEntityDao.getMovieById(id)
-                .map { movieEntity -> movieEntity?.toMovie(movieEntity.category) })
-        } catch (e: HttpException) {
-            Result.Error("Oops Something went wrong! Try again later.")
-
-
-        } catch (e: IOException) {
-            Result.Error("Couldn't reach server. Check your internet connection")
-
-        }
-    }
-
 
     override fun getAllMoviesStream(): Flow<List<Movie>> {
         return movieEntityDao.getAllMovies().map { movieEntityList ->
@@ -114,22 +93,4 @@ private fun getMovieListFromDb(
             movieEntity.toMovie(movieEntity.category)
         }
     }
-}
-
-suspend fun fetchAndInsertMovie(
-    moviesApiService: MoviesApi,
-    movieEntityDao: MovieEntityDao,
-    movieId: Int,
-) {
-    val movie = moviesApiService.getExtraMovieDetailsById(movieId)
-
-    val genreNames = movie.genres?.map { it.name }?.toList() ?: emptyList()
-    val genreIds = movie.genres?.map { it.id }?.toList() ?: emptyList()
-    val movieEntity = movie.toMovieEntity(
-        "",
-        genreNames.toString(),
-        genreIds.toString(),
-        movie.isFavourite,
-    )
-    movieEntityDao.upsertMovie(movieEntity)
 }

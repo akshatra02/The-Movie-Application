@@ -60,6 +60,7 @@ import com.example.themovieapp.presentation.components.RatingBar
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
 import com.example.themovieapp.presentation.viewmodel.SearchMovieViewModel
+import com.example.themovieapp.utils.IMAGE_BASE_URL
 import com.example.themovieapp.utils.TabPage
 import com.example.themovieapp.utils.toDate
 
@@ -167,7 +168,7 @@ fun MovieListItem(
         Row() {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(MoviesApi.IMAGE_BASE_URL.plus(movie.posterPath))
+                    .data(IMAGE_BASE_URL.plus(movie.posterPath))
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
@@ -212,6 +213,7 @@ fun MovieListItem(
                     modifier = modifier
                         .alpha(0.6f)
                 )
+                if (rating != null) {
                 Row(
                     modifier = modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -221,7 +223,6 @@ fun MovieListItem(
                         text = stringResource(R.string.rating_score).format(rating),
                         style = MaterialTheme.typography.titleSmall
                     )
-                    if (rating != null) {
                         RatingBar(rating)
                     }
 

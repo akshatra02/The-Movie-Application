@@ -16,7 +16,7 @@ interface MovieRepository {
         page: Int
     ): Result<Flow<List<Movie>>>
 
-    suspend fun getMovieByIdStream(id: Int): Result<Flow<Movie?>>
+
     fun getAllMoviesStream(): Flow<List<Movie>>
 
 }

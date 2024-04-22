@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
+import androidx.room.Transaction
 import androidx.room.Upsert
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.CastAndCrewEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.ExtraMovieDetailsEntity
@@ -23,22 +23,29 @@ interface MovieEntityDao {
 
     @Query("SELECT * FROM movie_table WHERE category = :category")
     fun getMovieListByCategory(category: String): Flow<List<MovieEntity>>
-    @Query("SELECT * FROM movie_table WHERE id = :id")
-    fun getMovieById(id: Int): Flow<MovieEntity?>
 
+    @Transaction
     @Query("SELECT * FROM movie_table")
     fun getAllMovies(): Flow<List<MovieEntity>>
 
     @Query("SELECT * FROM movie_table WHERE is_favourite = 1")
     fun getFavouriteMovies(): Flow<List<MovieEntity>>
 
-    @Update
-    suspend fun updateMovie(movieEntity: MovieEntity): Int
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExtraMovieDetails(extraMovieDetailsEntity: ExtraMovieDetailsEntity)
 
-    @Upsert
-    suspend fun upsertExtraMovieDetails(extraMovieDetailsEntity: ExtraMovieDetailsEntity)
+    @Query(
+        """SELECT movie.*, extradetails.* 
+FROM movie_table AS movie 
+LEFT JOIN EXTRA_MOVIE_DETAILS_TABLE AS extradetails 
+ON movie.id = extradetails.movie_id
+WHERE movie.id = :id
+"""
+    )
+    fun getMovieDetailsById(id: Int): Flow<MovieDetailsAndExtraDetailsData>?
 
-    @Upsert
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCastAndCrew(castAndCrewEntity: CastAndCrewEntity)
 
     @Query("SELECT * FROM cast_and_crew_table WHERE movie_id = :id")
@@ -49,16 +56,5 @@ interface MovieEntityDao {
 
     @Query("SELECT * FROM review_table WHERE movie_id = :id")
     fun getMovieReviewById(id: Int): Flow<List<ReviewEntity>>
-
-    @Query(
-        """SELECT movie.*, extradetails.* 
-FROM movie_table AS movie 
-LEFT JOIN EXTRA_MOVIE_DETAILS_TABLE AS extradetails 
-ON movie.id = extradetails.movie_id
-WHERE movie.id = :id
-"""
-    )
-    fun getMovieDetailsAndExtraById(id: Int): Flow<MovieDetailsAndExtraDetailsData>?
-
 
 }

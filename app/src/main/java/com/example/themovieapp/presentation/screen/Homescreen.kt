@@ -25,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -55,6 +56,7 @@ import com.example.themovieapp.presentation.components.cards.MovieCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.HomeViewModel
 import com.example.themovieapp.utils.Category
+import com.example.themovieapp.utils.IMAGE_BASE_URL
 import com.example.themovieapp.utils.TabPage
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,42 +80,43 @@ fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltView
     )
     Header(title = R.string.movies, navController = navController, tabPage = tabPage)
     { paddingValue ->
-            Column(
-                modifier = Modifier.padding(paddingValue)
+        Column(
+            modifier = Modifier.padding(paddingValue)
 
+        ) {
+
+            LazyColumn(
             ) {
 
-                LazyColumn(
-                ) {
-
-                    if (!nowPlayingUiState.isLoading && nowPlayingUiState.movieList.isNotEmpty()) {
-                        item {
-                            nowPlayingUiState.movieList.first()?.let {
-                                BackgroundWithTextAndButton(
-                                    background = it.posterPath,
-                                )
-                            }
+                if (!nowPlayingUiState.isLoading && nowPlayingUiState.movieList.isNotEmpty()) {
+                    item {
+                        nowPlayingUiState.movieList.first()?.let {
+                            BackgroundWithTextAndButton(
+                                background = it.posterPath,
+                            )
                         }
                     }
-                    items(items = categories, key = {it.third}) { item ->
-                        val titleResId = item.first
-                        val movieListUi = item.second
-                        val category = item.third
-                        MovieLazyRow(
-                            title = titleResId,
-                            movieList = movieListUi.movieList,
-                            tabPage = tabPage,
-                            categoryMoreMovies = { navController.navigate("${Screen.CategoryScreen.route}/${category}") },
-                            isLoading = movieListUi.isLoading,
-                            loadMoreMovie = { viewModel.loadMore(category) },
-                            navController = navController
-                        )
-                    }
+                }
+                items(items = categories, key = { it.third }) { item ->
+                    val titleResId = item.first
+                    val movieListUi = item.second
+                    val category = item.third
+                    MovieLazyRow(
+                        title = titleResId,
+                        movieList = movieListUi.movieList,
+                        tabPage = tabPage,
+                        categoryMoreMovies = { navController.navigate("${Screen.CategoryScreen.route}/${category}") },
+                        isLoading = movieListUi.isLoading,
+                        loadMoreMovie = { viewModel.loadMore(category) },
+                        navController = navController
+                    )
                 }
             }
+        }
     }
 
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackgroundWithTextAndButton(
@@ -125,9 +128,9 @@ fun BackgroundWithTextAndButton(
         // Background Image
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(MoviesApi.IMAGE_BASE_URL.plus(background)).crossfade(true).build(),
+                .data(IMAGE_BASE_URL.plus(background)).crossfade(true).build(),
             error = painterResource(id = R.drawable.ic_broken_image),
-            contentScale = ContentScale.Crop ,
+            contentScale = ContentScale.Crop,
             alpha = .5f,
             contentDescription = "hello",
             modifier = Modifier
@@ -156,7 +159,7 @@ fun BackgroundWithTextAndButton(
 fun MovieLazyRow(
     modifier: Modifier = Modifier,
     @StringRes title: Int,
-    tabPage : TabPage,
+    tabPage: TabPage,
     categoryMoreMovies: () -> Unit = {},
     isLoading: Boolean,
     loadMoreMovie: () -> Unit = {},
@@ -206,11 +209,14 @@ fun MovieLazyRow(
                             photo = currentUiState.posterPath,
                             moreMovieDetails = {
                                 navController.navigate("${Screen.DetailScreen.route}/${currentUiState.id}/${tabPage.name}")
-                    },
+                            },
                             modifier = modifier
                         )
                         if (i >= movieList.size - 1 && !isLoading) {
-                            loadMoreMovie()
+                            LoadingMovieCard()
+                            LaunchedEffect(key1 = movieList) {
+                                loadMoreMovie()
+                            }
                         }
                     }
                 }
