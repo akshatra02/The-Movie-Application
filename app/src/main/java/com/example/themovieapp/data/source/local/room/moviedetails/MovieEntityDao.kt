@@ -8,9 +8,11 @@ import androidx.room.Transaction
 import androidx.room.Upsert
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.CastAndCrewEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.ExtraMovieDetailsEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.GenreEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieDetailsAndExtraDetailsData
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.ReviewEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.SyncEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -20,6 +22,9 @@ interface MovieEntityDao {
 
     @Upsert
     suspend fun upsertMovie(movie: MovieEntity)
+
+    @Query("UPDATE movie_table SET is_favourite = NOT(is_favourite)  WHERE id = :movieId")
+    suspend fun updateFavouriteStatus(movieId: Int)
 
     @Query("SELECT * FROM movie_table WHERE category = :category")
     fun getMovieListByCategory(category: String): Flow<List<MovieEntity>>
@@ -44,7 +49,6 @@ WHERE movie.id = :id
     )
     fun getMovieDetailsById(id: Int): Flow<MovieDetailsAndExtraDetailsData>?
 
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCastAndCrew(castAndCrewEntity: CastAndCrewEntity)
 
@@ -57,4 +61,15 @@ WHERE movie.id = :id
     @Query("SELECT * FROM review_table WHERE movie_id = :id")
     fun getMovieReviewById(id: Int): Flow<List<ReviewEntity>>
 
+    @Upsert
+    fun upsertSyncDetails(syncEntity: SyncEntity)
+
+    @Query("SELECT * FROM sync_table")
+    fun getSyncDetails():SyncEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertGenreDetails(genreEntity: List<GenreEntity>)
+
+    @Query("SELECT * FROM genre_table")
+    fun getGenreDetails():List<GenreEntity>
 }

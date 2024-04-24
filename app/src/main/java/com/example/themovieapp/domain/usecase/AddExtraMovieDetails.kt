@@ -9,7 +9,7 @@ import javax.inject.Inject
 class AddExtraMovieDetails @Inject constructor(
     private val movieDetailsRepository: MovieDetailsRepository
 )  {
-    suspend operator fun invoke(id: Int): Result<Flow<MovieDetailsAndExtraDetails>> {
+    suspend operator fun invoke(id: Int){
         return movieDetailsRepository.addExtraMovieDetails(id)
     }
 }

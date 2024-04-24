@@ -6,9 +6,9 @@ import com.example.themovieapp.utils.Result
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetCastAndCrewUseCase  @Inject constructor(
+class GetCastAndCrewUseCase @Inject constructor(
     private val movieDetailsRepository: MovieDetailsRepository
-)  {
+) {
     suspend operator fun invoke(id: Int): Result<Flow<List<CastAndCrew>>> {
         return movieDetailsRepository.getCastAndCrewStream(id)
     }

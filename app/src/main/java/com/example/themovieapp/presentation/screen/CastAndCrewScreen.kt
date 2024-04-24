@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,7 +11,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,15 +28,13 @@ fun CastAndCrewScreen(
     navController: NavController,
     viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
-
-    var tabPage by remember {
+    val tabPage by remember {
         mutableStateOf(TabPage.HOME)
     }
-    val castAndCrewListUiState by viewModel.castAndCrewListUiState.collectAsState()
-    val movieAndExtraDetailUiState by viewModel.movieAndExtraDetailUiState.collectAsState()
-    val castAndCrewList = castAndCrewListUiState.castAndCrew
-    val title = movieAndExtraDetailUiState.movieAndExtraDetails?.title ?: ""
-    val movieId = movieAndExtraDetailUiState.movieAndExtraDetails?.id ?: -1
+    val uiState by viewModel.uiState.collectAsState()
+    val castAndCrewList = uiState.castAndCrewState
+    val title = uiState.movieAndExtraDetails?.title ?: ""
+    val movieId = uiState.movieAndExtraDetails?.id ?: -1
     Header(
         title = title,
         navController = navController,
@@ -56,14 +52,14 @@ fun CastAndCrewScreen(
         })
     { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
-            if (castAndCrewListUiState.isLoading) {
+            if (castAndCrewList.isLoading) {
                 LazyColumn {
                     items(5) {
                         LoadingRowCard()
                     }
                 }
             } else {
-                CastAndCrewContent(castAndCrewList = castAndCrewList)
+                CastAndCrewContent(castAndCrewList = castAndCrewList.castAndCrew)
             }
         }
     }
@@ -71,13 +67,11 @@ fun CastAndCrewScreen(
 
 @Composable
 private fun CastAndCrewContent(modifier: Modifier = Modifier, castAndCrewList: List<CastAndCrew>?) {
-    if (castAndCrewList == null)return
-
+    if (castAndCrewList == null) return
     val castList = castAndCrewList.filter { it.isCast }.sortedBy { it.order }
     val crewList = castAndCrewList.filter { !it.isCast }
     Column {
         LazyColumn {
-
             if (castList.isNotEmpty()) {
                 item {
                     Text(
@@ -104,7 +98,7 @@ private fun CastAndCrewContent(modifier: Modifier = Modifier, castAndCrewList: L
                     )
                 }
                 val departmentList = crewList.map { it.knowForDepartment }.toSortedSet()
-                departmentList.forEach{ departmentName ->
+                departmentList.forEach { departmentName ->
                     val dept = crewList.filter { it.knowForDepartment == departmentName }
                     item {
                         Text(

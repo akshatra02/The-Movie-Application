@@ -1,13 +1,12 @@
 package com.example.themovieapp.domain.model
 
-import androidx.room.ColumnInfo
 data class MovieDetailsAndExtraDetails(
     val id: Int,
     val category: String,
     val isFavourite: Boolean,
     val adult: Boolean,
     val backdropPath: String,
-    val genreIds: List<Int>,
+    val genreIds: List<Int>?,
     val genreNames: List<String>,
     val originalLanguage: String?,
     val originalTitle: String?,

@@ -42,26 +42,26 @@ fun LoadingRowCard(modifier: Modifier = Modifier) {
         ),
         label = "alpha"
     )
-            Row(
-                modifier = modifier
-                    .heightIn(min = 64.dp)
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Box(
-                    modifier = modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = alpha))
-                )
-                Spacer(modifier = modifier.width(16.dp))
-                Box(
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .height(32.dp)
-                        .background(Color.LightGray.copy(alpha = alpha))
-                )
-            }
+    Row(
+        modifier = modifier
+            .heightIn(min = 64.dp)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Box(
+            modifier = modifier
+                .size(100.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.tertiary.copy(alpha = alpha))
+        )
+        Spacer(modifier = modifier.width(16.dp))
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(32.dp)
+                .background(Color.LightGray.copy(alpha = alpha))
+        )
+    }
 
-        }
+}

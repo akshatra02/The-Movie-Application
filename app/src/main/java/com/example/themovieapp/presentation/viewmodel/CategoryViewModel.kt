@@ -4,8 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.themovieapp.domain.usecase.GetMoviesByCategoryUseCase
+import com.example.themovieapp.domain.usecase.LoadMoreMoviesUseCase
 import com.example.themovieapp.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -16,34 +18,26 @@ import javax.inject.Inject
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
     private val getMoviesByCategoryUseCase: GetMoviesByCategoryUseCase,
+    private val loadMoreMoviesUseCase: LoadMoreMoviesUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _movieListUiState = MutableStateFlow(MovieUiState())
     val movieListUiState = _movieListUiState.asStateFlow()
-
     val category = savedStateHandle.get<String>("category")
 
     init {
-        getMoviesByCategory(category.toString(), forceFetchFromRemote = false)
+        getMoviesByCategory(category.toString())
     }
 
     fun loadMore() {
-        _movieListUiState.update { it.copy(isLoading = true) }
-        getMoviesByCategory(category = category.toString(), forceFetchFromRemote = true)
-        _movieListUiState.update { it.copy(isLoading = false) }
-
+        viewModelScope.launch(Dispatchers.IO) {
+            loadMoreMoviesUseCase(category = category.toString())
+        }
     }
 
-
-    private fun getMoviesByCategory(category: String, forceFetchFromRemote: Boolean) {
-        viewModelScope.launch {
-
-            val result = getMoviesByCategoryUseCase(
-                category,
-                forceFetchFromRemote,
-                movieListUiState.value.page
-            )
-            when (result) {
+    private fun getMoviesByCategory(category: String) {
+        viewModelScope.launch(Dispatchers.IO)  {
+            when (val result = getMoviesByCategoryUseCase(category)) {
                 is Result.Error -> {
                     _movieListUiState.update {
                         it.copy(isLoading = false)
@@ -54,23 +48,18 @@ class CategoryViewModel @Inject constructor(
                     _movieListUiState.update {
                         it.copy(isLoading = result.isLoading)
                     }
-
                 }
 
-                is Result.Success ->
-                    result.data?.collectLatest{ movieList ->
-                        _movieListUiState.update {
-                            it.copy(
-                                movieList = _movieListUiState.value.movieList + movieList,
-                                page = _movieListUiState.value.page + 1,
-                                isLoading = false
+                is Result.Success -> result.data?.collectLatest { movieList ->
+                    _movieListUiState.update {
+                        it.copy(
+                            movieList = movieList,
+                            isLoading = false
 
-                            )
-                        }
-
+                        )
                     }
+                }
             }
-
         }
     }
 }

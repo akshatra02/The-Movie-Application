@@ -1,6 +1,5 @@
 package com.example.themovieapp.presentation.screen
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -51,9 +49,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.R
-import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.CastAndCrew
-import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.model.MovieDetailsAndExtraDetails
 import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.presentation.components.Header
@@ -73,85 +69,71 @@ import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTube
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun DetailScreen(
-    navController: NavController,tabPageString: String, viewModel: MovieDetailsViewModel = hiltViewModel()
+    navController: NavController,
+    tabPageString: String,
+    viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
-
     val tabPage by remember {
         mutableStateOf(TabPage.valueOf(tabPageString))
     }
-    val recommendedMovieListUiState by viewModel.recommendedMovieListUiState.collectAsState()
-    val castAndCrewListUiState by viewModel.castAndCrewListUiState.collectAsState()
-    val reviewListUiState by viewModel.reviewListUiState.collectAsState()
-    val movieAndExtraDetailUiState = viewModel.movieAndExtraDetailUiState.collectAsState().value
-    val title =  movieAndExtraDetailUiState.movieAndExtraDetails?.title ?: ""
-    Header(title,navController,tabPage)
-     { paddingValues ->
+    val uiState by viewModel.uiState.collectAsState()
+    val title = uiState.movieAndExtraDetails?.title ?: ""
+    Header(title, navController, tabPage) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .padding(paddingValues),
-
-            ) {
+            modifier = Modifier.padding(paddingValues),
+        ) {
             item {
-                movieAndExtraDetailUiState.movieAndExtraDetails?.let { movie ->
+                uiState.movieAndExtraDetails?.let { movie ->
                     Column {
-
                         BackDrop(movieDetails = movie, modifier = Modifier.height(350.dp))
                         MovieContent(
                             movie = movie,
                             onClickFavourite = { viewModel.addMovieToFavourite(movie.id) },
                             modifier = Modifier
                         )
-                        if (castAndCrewListUiState.isLoading) {
-                                LazyRow {
-                                    items(3) {
-                                        LoadingPersonCard()
-                                    }
+
+                        if (uiState.castAndCrewState.isLoading) {
+                            LazyRow {
+                                items(3) {
+                                    LoadingPersonCard()
                                 }
+                            }
                         } else {
-                            if (castAndCrewListUiState.castAndCrew.isNotEmpty()) {
-                                CastAndCrewContent(
-                                    castAndCrewList = castAndCrewListUiState.castAndCrew,
-                                    isLoading = castAndCrewListUiState.isLoading,
+                            if (uiState.castAndCrewState.castAndCrew.isNotEmpty()) {
+                                CastAndCrewContent(castAndCrewList = uiState.castAndCrewState.castAndCrew,
+                                    isLoading = uiState.isLoading,
                                     castAndCrewForMovie = {
                                         navController.navigate("${Screen.CastAndCrewScreen.route}/${movie.id}")
                                     })
                             }
-                            if (reviewListUiState.review.isNotEmpty()) {
-
+                            if (uiState.reviewState.review.isNotEmpty()) {
                                 ReviewContent(
-                                    reviewList = reviewListUiState.review,
+                                    reviewList = uiState.reviewState.review,
                                     reviewForMovie = {
                                         navController.navigate("${Screen.ReviewScreen.route}/${movie.id}")
-
                                     })
                             }
-                            if (movieAndExtraDetailUiState.movieAndExtraDetails.postersPathList?.isNotEmpty() == true) {
-                                MediaContent(
-                                    extraMovieDetails = movieAndExtraDetailUiState.movieAndExtraDetails,
+                            if (movie.postersPathList?.isNotEmpty() == true) {
+                                MediaContent(extraMovieDetails = movie,
                                     modifier = Modifier,
                                     moreBackDrops = {
                                         navController.navigate("${Screen.BackdropScreen.route}/${movie.id}")
                                     },
                                     morePosters = {
                                         navController.navigate("${Screen.PosterScreen.route}/${movie.id}")
-
-                                    }
-                                )
+                                    })
                             }
-                            if (recommendedMovieListUiState.movieList.isNotEmpty()) {
-
+                            if (uiState.recommendationState.movieList.isNotEmpty()) {
                                 RecommendationContent(
-                                    recommendedMovieList = recommendedMovieListUiState.movieList,
+                                    recommendedMovieList = uiState.recommendationState.movieList,
                                     navController = navController,
                                     tabPage = tabPage
                                 )
                             }
                         }
-
-
                     }
                 }
             }
@@ -165,53 +147,41 @@ private fun BackDrop(
     movieDetails: MovieDetailsAndExtraDetails, modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier,
-        contentAlignment = Alignment.CenterStart
+        modifier = modifier, contentAlignment = Alignment.CenterStart
     ) {
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(IMAGE_BASE_URL.plus(movieDetails.backdropPath)).crossfade(true)
-                .build(),
+                .data(IMAGE_BASE_URL.plus(movieDetails.backdropPath)).crossfade(true).build(),
             error = painterResource(id = R.drawable.ic_broken_image),
             contentScale = ContentScale.Crop,
             contentDescription = "",
             colorFilter = ColorFilter.tint(
-                MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
-                BlendMode.ColorBurn
+                MaterialTheme.colorScheme.background.copy(alpha = 0.5f), BlendMode.ColorBurn
             ),
             modifier = modifier
-//                .align(Alignment.BottomEnd)
         )
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
-                .data(IMAGE_BASE_URL.plus(movieDetails.posterPath)).crossfade(true)
-                .build(),
-
+                .data(IMAGE_BASE_URL.plus(movieDetails.posterPath)).crossfade(true).build(),
             error = painterResource(id = R.drawable.ic_broken_image),
             contentDescription = "",
             modifier = modifier
                 .size(150.dp)
                 .align(Alignment.Center)
-
         )
     }
 }
 
 @Composable
 private fun MovieContent(
-    movie: MovieDetailsAndExtraDetails,
-    onClickFavourite: () -> Unit,
-    modifier: Modifier
+    movie: MovieDetailsAndExtraDetails, onClickFavourite: () -> Unit, modifier: Modifier
 ) {
     val isFavourite = movie.isFavourite
-
     val rating = movie.voteAverage
-
     Column(
         modifier = modifier.padding(vertical = 16.dp)
     ) {
         Row {
-
             Column(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
@@ -220,9 +190,7 @@ private fun MovieContent(
                         .replace(", ", " • "),
                     style = MaterialTheme.typography.titleMedium,
                     fontStyle = FontStyle.Italic,
-//                textAlign = TextAlign.Center,
-                    modifier = modifier
-                        .alpha(0.6f)
+                    modifier = modifier.alpha(0.6f)
                 )
                 Text(
                     text = movie.title,
@@ -230,13 +198,11 @@ private fun MovieContent(
                     color = MaterialTheme.colorScheme.secondary
 
                 )
-
                 Text(
                     text = toDate(movie.releaseDate),
                     style = MaterialTheme.typography.titleMedium,
                     fontStyle = FontStyle.Italic,
-                    modifier = modifier
-                        .alpha(0.6f)
+                    modifier = modifier.alpha(0.6f)
                 )
                 if (movie.tagline != null) {
                     Text(text = movie.tagline)
@@ -259,9 +225,8 @@ private fun MovieContent(
                 style = MaterialTheme.typography.titleLarge
             )
             if (rating != null) {
-                RatingBar(rating)
+                RatingBar(rating = rating)
             }
-
         }
         Button(
             modifier = modifier
@@ -278,7 +243,6 @@ private fun MovieContent(
                 text = if (isFavourite) "Remove from Favourite"
                 else "Add to Favourite"
             )
-
         }
         Text(
             text = stringResource(R.string.overview),
@@ -287,8 +251,6 @@ private fun MovieContent(
             color = MaterialTheme.colorScheme.secondary
         )
         Text(text = movie.overview)
-
-
     }
 }
 
@@ -309,11 +271,9 @@ private fun MoreMovieContent(extraMovieDetails: MovieDetailsAndExtraDetails) {
         if (extraMovieDetails.budget != 0L) {
             Column {
                 ColumnView(
-                    label = "Budget: ",
-                    value = "$ ${extraMovieDetails.budget?.div(1000000)}M"
+                    label = "Budget: ", value = "$ ${extraMovieDetails.budget?.div(1000000)}M"
                 )
             }
-
         }
         if (extraMovieDetails.revenue != 0L) {
             ColumnView(label = "Revenue:", value = "$ ${extraMovieDetails.revenue?.div(1000000)}M")
@@ -337,14 +297,11 @@ private fun ColumnView(label: String, value: String) {
         )
         Text(text = value, style = MaterialTheme.typography.titleLarge)
     }
-
 }
 
 @Composable
 private fun CastAndCrewContent(
-    castAndCrewList: List<CastAndCrew>,
-    isLoading: Boolean,
-    castAndCrewForMovie: () -> Unit = {}
+    castAndCrewList: List<CastAndCrew>, isLoading: Boolean, castAndCrewForMovie: () -> Unit = {}
 ) {
     var isCast by remember {
         mutableStateOf(true)
@@ -378,17 +335,14 @@ private fun CastAndCrewContent(
 
                 )
         }
-        Text(
-            text = "See All ",
+        Text(text = "See All ",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
                 .padding(start = 5.dp)
                 .clickable {
                     castAndCrewForMovie()
-                }
-        )
+                })
     }
-
     val castList = castAndCrewList.filter { it.isCast }.sortedBy { it.order }
     val crewList = castAndCrewList.filter { !it.isCast }
     val list = if (isCast) castList else crewList
@@ -396,9 +350,7 @@ private fun CastAndCrewContent(
         items(list.size) { index ->
             val castAndCrew = list[index]
             PersonCard(
-                title = castAndCrew.name,
-                role = castAndCrew.role,
-                photo = castAndCrew.profilePath
+                title = castAndCrew.name, role = castAndCrew.role, photo = castAndCrew.profilePath
             )
         }
     }
@@ -418,8 +370,7 @@ private fun ReviewContent(reviewList: List<Review>, reviewForMovie: () -> Unit =
                 text = "Reviews ",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier
-                    .padding(start = 5.dp),
+                modifier = Modifier.padding(start = 5.dp),
             )
             Text(
                 text = reviewList.size.toString(),
@@ -427,30 +378,24 @@ private fun ReviewContent(reviewList: List<Review>, reviewForMovie: () -> Unit =
                 style = MaterialTheme.typography.headlineSmall
             )
         }
-        Text(
-            text = "Read All Reviews",
+        Text(text = "Read All Reviews",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
                 .padding(horizontal = 5.dp)
                 .clickable {
                     reviewForMovie()
-                }
-        )
-
+                })
     }
     LazyRow {
         items(reviewList.size) { index ->
             val review = reviewList[index]
             ReviewCard(
                 review = review,
-                modifier = Modifier
-                    .height(250.dp),
+                modifier = Modifier.height(250.dp),
                 overflow = TextOverflow.Ellipsis
-
             )
         }
     }
-
 }
 
 @Composable
@@ -463,16 +408,13 @@ private fun MediaContent(
     var isBackdrops by remember {
         mutableStateOf(true)
     }
-
     val postersPathList = extraMovieDetails.postersPathList
     val backdropsPathList = extraMovieDetails.backdropsPathList
-
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 8.dp)
     ) {
-
         Text(
             text = "Backdrops (${backdropsPathList?.size})",
             style = MaterialTheme.typography.titleLarge,
@@ -481,8 +423,7 @@ private fun MediaContent(
             modifier = Modifier
                 .padding(start = 5.dp)
                 .clickable { isBackdrops = true },
-
-            )
+        )
         Text(
             text = "Posters (${postersPathList?.size})",
             style = MaterialTheme.typography.titleLarge,
@@ -492,7 +433,6 @@ private fun MediaContent(
                 .padding(start = 5.dp)
                 .clickable { isBackdrops = false },
         )
-
     }
     val mediaList = if (isBackdrops) backdropsPathList else postersPathList
     LazyRow {
@@ -502,9 +442,7 @@ private fun MediaContent(
                 val imagesPath = mediaList[index]
                 AsyncImage(
                     model = ImageRequest.Builder(context = LocalContext.current)
-                        .data(IMAGE_BASE_URL.plus(imagesPath))
-                        .crossfade(true)
-                        .build(),
+                        .data(IMAGE_BASE_URL.plus(imagesPath)).crossfade(true).build(),
                     error = painterResource(id = R.drawable.ic_broken_image),
                     contentDescription = "hello",
                     modifier = Modifier
@@ -520,10 +458,8 @@ private fun MediaContent(
                                 .heightIn(min = if (isBackdrops) 200.dp else 300.dp)
                                 .width(150.dp)
                                 .clickable {
-                                    if (isBackdrops) moreBackDrops() else
-                                        morePosters()
-                                },
-                            contentAlignment = Alignment.Center
+                                    if (isBackdrops) moreBackDrops() else morePosters()
+                                }, contentAlignment = Alignment.Center
                         ) {
                             Text(text = "View More")
                             Icon(
@@ -543,13 +479,16 @@ private fun MediaContent(
 }
 
 @Composable
-private fun RecommendationContent(recommendedMovieList: List<MovieDetailsAndExtraDetails?>, navController: NavController,tabPage: TabPage) {
+private fun RecommendationContent(
+    recommendedMovieList: List<MovieDetailsAndExtraDetails?>,
+    navController: NavController,
+    tabPage: TabPage
+) {
     Text(
         text = stringResource(R.string.recommended_movies),
         color = MaterialTheme.colorScheme.secondary,
         style = MaterialTheme.typography.titleLarge
     )
-
     LazyRow {
         items(recommendedMovieList.size) { index ->
             val recommendedMovie = recommendedMovieList[index]
@@ -560,7 +499,6 @@ private fun RecommendationContent(recommendedMovieList: List<MovieDetailsAndExtr
                     photo = recommendedMovie.posterPath,
                     moreMovieDetails = {
                         navController.navigate("${Screen.DetailScreen.route}/${recommendedMovie.id}/${tabPage.name}")
-
                     })
             }
         }
@@ -570,15 +508,13 @@ private fun RecommendationContent(recommendedMovieList: List<MovieDetailsAndExtr
 
 @Composable
 private fun VideoPlayer(
-    videoId: String,
-    lifecycleOwner: LifecycleOwner
+    videoId: String, lifecycleOwner: LifecycleOwner
 ) {
     Text(
         text = stringResource(R.string.watch_trailer),
         color = MaterialTheme.colorScheme.secondary,
         style = MaterialTheme.typography.titleLarge
     )
-
     AndroidView(modifier = Modifier.fillMaxWidth(), factory = { context ->
         YouTubePlayerView(context).apply {
             lifecycleOwner.lifecycle.addObserver(this)
@@ -589,7 +525,5 @@ private fun VideoPlayer(
                 }
             })
         }
-
     })
-
 }

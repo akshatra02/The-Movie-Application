@@ -6,26 +6,27 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.CastAndCrewEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.ExtraMovieDetailsEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.GenreEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.MovieEntity
 import com.example.themovieapp.data.source.local.room.moviedetails.entity.ReviewEntity
+import com.example.themovieapp.data.source.local.room.moviedetails.entity.SyncEntity
 
 @Database(
     entities = [
         MovieEntity::class,
         ExtraMovieDetailsEntity::class,
         CastAndCrewEntity::class,
-        ReviewEntity::class
+        ReviewEntity::class,
+    GenreEntity::class,
+    SyncEntity::class
     ],
     version = 1
 )
 abstract class MovieDatabase : RoomDatabase() {
     abstract fun moviesDao(): MovieEntityDao
-
     companion object {
-
         @Volatile
         var INSTANCE: MovieDatabase? = null
-
         fun getDatabase(context: Context): MovieDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
@@ -33,8 +34,6 @@ abstract class MovieDatabase : RoomDatabase() {
                 ).build().also {
                     INSTANCE = it
                 }
-
-
             }
         }
     }

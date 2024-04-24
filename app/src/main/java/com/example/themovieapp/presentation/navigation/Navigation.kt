@@ -41,44 +41,35 @@ fun Navigation(
             CategoryScreen(navController, category = category)
         }
         composable(
-            route = "${Screen.DetailScreen.route}/{movieId}/{tabPage}",
-            arguments = listOf(navArgument("movieId") { type = NavType.IntType },navArgument("tabPage") { type = NavType.StringType })
+            route = "${Screen.DetailScreen.route}/{movieId}/{tabPage}", arguments = listOf(
+                navArgument("movieId") { type = NavType.IntType },
+                navArgument("tabPage") { type = NavType.StringType })
         ) { backStackEntry ->
-            val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
             val tabPageString = backStackEntry.arguments?.getString("tabPage") ?: ""
-//            val tabPage = TabPage.valueOf(tabPageString)
-            DetailScreen(navController,tabPageString)
+            DetailScreen(navController, tabPageString)
         }
         composable(
             route = "${Screen.CastAndCrewScreen.route}/{movieId}",
             arguments = listOf(navArgument("movieId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
-
+        ) {
             CastAndCrewScreen(navController)
         }
         composable(
             route = "${Screen.ReviewScreen.route}/{movieId}",
             arguments = listOf(navArgument("movieId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
-
+        ) {
             ReviewScreen(navController)
         }
         composable(
             route = "${Screen.BackdropScreen.route}/{movieId}",
             arguments = listOf(navArgument("movieId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
-
+        ) {
             BackdropScreen(navController)
         }
         composable(
             route = "${Screen.PosterScreen.route}/{movieId}",
             arguments = listOf(navArgument("movieId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val movieId = backStackEntry.arguments?.getInt("movieId") ?: -1
-
+        ) {
             PosterScreen(navController)
         }
 

@@ -13,7 +13,7 @@ data class MovieEntity(
 
     @ColumnInfo(name = "adult") val adult: Boolean,
     @ColumnInfo(name = "backdrop_path") val backdropPath: String,
-    @ColumnInfo(name = "genre_ids")  val genreIds: String,
+    @ColumnInfo(name = "genre_ids")  val genreIds: String?,
     @ColumnInfo(name = "genre_names")  val genreNames: String,
     @ColumnInfo(name = "original_language")  val originalLanguage: String,
     @ColumnInfo(name = "original_title")  val originalTitle: String,
@@ -25,35 +25,4 @@ data class MovieEntity(
     @ColumnInfo(name = "video")  val video: Boolean,
     @ColumnInfo(name = "vote_average")  val voteAverage: Double,
     @ColumnInfo(name = "vote_count")  val voteCount: Int,
-){
-    fun toMovie(
-        category: String = ""
-    ): Movie{
-        return Movie(
-            adult = adult ,
-            backdropPath = backdropPath,
-            originalLanguage = originalLanguage ,
-            originalTitle = originalTitle,
-            overview = overview ,
-            popularity = popularity ,
-            posterPath = posterPath,
-            releaseDate = releaseDate,
-            title = title,
-            video = video,
-            voteAverage = voteAverage,
-            voteCount = voteCount,
-            id = id,
-            category = category,
-            genreIds = try {
-                genreIds.split(",").map { it.toInt() }
-            }catch (e : Exception){
-                listOf(-1,-2)
-            },
-            genreNames = genreNames.split(","),
-            isFavourite = isFavourite,
-
-
-        )
-    }
-}
-
+)

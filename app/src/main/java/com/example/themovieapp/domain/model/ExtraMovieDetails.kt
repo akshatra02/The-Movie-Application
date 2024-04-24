@@ -1,6 +1,5 @@
 package com.example.themovieapp.domain.model
 
-
 data class ExtraMovieDetails(
     val id: Int,
     val budget: Long?,

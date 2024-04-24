@@ -1,10 +1,12 @@
 package com.example.themovieapp.data.source.remote.dto.recommendation
 
-import com.example.themovieapp.data.source.remote.dto.recommendation.RecommendationDto
+import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class RecommendationListDto(
     val page: Int,
     val results: List<RecommendationDto>,
-    val total_pages: Int,
-    val total_results: Int
+    @SerializedName("total_pages") val totalPages: Int,
+    @SerializedName("total_results") val totalResults: Int
 )

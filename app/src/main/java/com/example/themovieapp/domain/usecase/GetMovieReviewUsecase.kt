@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 class GetMovieReviewUseCase @Inject constructor(
     private val movieDetailsRepository: MovieDetailsRepository
-)  {
+) {
     suspend operator fun invoke(id: Int): Result<Flow<List<Review>>> {
         return movieDetailsRepository.getMovieReviewStream(id)
     }

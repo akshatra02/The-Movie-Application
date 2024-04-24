@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.R
-import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.utils.IMAGE_BASE_URL
 
 

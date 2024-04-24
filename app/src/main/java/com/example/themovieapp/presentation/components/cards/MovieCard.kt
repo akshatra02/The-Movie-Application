@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.R
-import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.utils.IMAGE_BASE_URL
 import com.example.themovieapp.utils.toDate
 
@@ -78,7 +77,7 @@ fun MovieCard(
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = "",
-                    tint = MaterialTheme.colorScheme.tertiary ,
+                    tint = MaterialTheme.colorScheme.tertiary,
                     modifier = modifier.padding(end = 8.dp)
                 )
                 Text(text = "%.1f".format(rating), fontWeight = FontWeight.Bold)

@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun RatingBar(
-    rating: Double = 0.0,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    rating: Double = 0.0
 ) {
     val stars = 5
     val color = MaterialTheme.colorScheme.primary

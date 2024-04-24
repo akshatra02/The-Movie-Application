@@ -17,16 +17,4 @@ data class CrewDto(
     @SerializedName("known_for_department")  val knownForDepartment: String?,
     @SerializedName("original_name")  val originalName: String?,
     @SerializedName("profile_path")  val profilePath: String?
-){
-    fun toCastAndCrewEntity(movieId : Int): CastAndCrewEntity =
-        CastAndCrewEntity(
-            personId = id,
-            movieId = movieId,
-            name = name,
-            role = job ?: "",
-            knowForDepartment = knownForDepartment ?: "",
-            order = -1,
-            profilePath = profilePath ?: "",
-            isCast = false
-        )
-}
+)

@@ -1,37 +1,30 @@
 package com.example.themovieapp.presentation.screen
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,77 +40,76 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.R
-import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Movie
-import com.example.themovieapp.presentation.components.BottomTab
 import com.example.themovieapp.presentation.components.Header
-import com.example.themovieapp.presentation.components.loadingitems.LoadingMovieCard
 import com.example.themovieapp.presentation.components.cards.MovieCard
+import com.example.themovieapp.presentation.components.loadingitems.LoadingMovieCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.HomeViewModel
 import com.example.themovieapp.utils.Category
 import com.example.themovieapp.utils.IMAGE_BASE_URL
 import com.example.themovieapp.utils.TabPage
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun HomeScreen(navController: NavController, viewModel: HomeViewModel = hiltViewModel()) {
-    val nowPlayingUiState by viewModel.nowPlayingUiState.collectAsState()
-    val upcomingUiState by viewModel.upcomingUiState.collectAsState()
-    val topRatedUiState by viewModel.topRatedUiState.collectAsState()
-    val popularUiState by viewModel.popularUiState.collectAsState()
+    val homeUiState by viewModel.homeUiState.collectAsState()
     val tabPage by remember {
         mutableStateOf(TabPage.HOME)
     }
     val categories = listOf(
         Triple(
-            R.string.now_playing, nowPlayingUiState, Category.NOW_PLAYING
+            R.string.now_playing, homeUiState.nowPlayingUiState, Category.NOW_PLAYING
         ), Triple(
-            R.string.upcoming, upcomingUiState, Category.UPCOMING
+            R.string.upcoming, homeUiState.upcomingUiState, Category.UPCOMING
         ), Triple(
-            R.string.top_rated, topRatedUiState, Category.TOP_RATED
-        ), Triple(R.string.popular, popularUiState, Category.POPULAR)
+            R.string.top_rated, homeUiState.topRatedUiState, Category.TOP_RATED
+        ), Triple(R.string.popular, homeUiState.popularUiState, Category.POPULAR)
     )
     Header(title = R.string.movies, navController = navController, tabPage = tabPage)
     { paddingValue ->
         Column(
             modifier = Modifier.padding(paddingValue)
-
         ) {
+            if (homeUiState.nowPlayingUiState.isLoading || homeUiState.nowPlayingUiState.movieList.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
 
-            LazyColumn(
-            ) {
-
-                if (!nowPlayingUiState.isLoading && nowPlayingUiState.movieList.isNotEmpty()) {
+                LazyColumn {
                     item {
-                        nowPlayingUiState.movieList.first()?.let {
+                        homeUiState.nowPlayingUiState.movieList.first()?.let {
                             BackgroundWithTextAndButton(
                                 background = it.posterPath,
                             )
                         }
                     }
-                }
-                items(items = categories, key = { it.third }) { item ->
-                    val titleResId = item.first
-                    val movieListUi = item.second
-                    val category = item.third
-                    MovieLazyRow(
-                        title = titleResId,
-                        movieList = movieListUi.movieList,
-                        tabPage = tabPage,
-                        categoryMoreMovies = { navController.navigate("${Screen.CategoryScreen.route}/${category}") },
-                        isLoading = movieListUi.isLoading,
-                        loadMoreMovie = { viewModel.loadMore(category) },
-                        navController = navController
-                    )
+                    items(items = categories, key = { it.third }) { item ->
+                        val titleResId = item.first
+                        val movieListUi = item.second
+                        val category = item.third
+                        MovieLazyRow(
+                            title = titleResId,
+                            movieList = movieListUi.movieList,
+                            tabPage = tabPage,
+                            categoryMoreMovies = { navController.navigate("${Screen.CategoryScreen.route}/${category}") },
+                            isLoading = movieListUi.isLoading,
+                            loadMoreMovie = { viewModel.loadMore(category) },
+                            navController = navController
+                        )
+                    }
                 }
             }
         }
     }
-
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackgroundWithTextAndButton(
     background: String,
@@ -125,7 +117,6 @@ fun BackgroundWithTextAndButton(
     Box(
         modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomStart
     ) {
-        // Background Image
         AsyncImage(
             model = ImageRequest.Builder(context = LocalContext.current)
                 .data(IMAGE_BASE_URL.plus(background)).crossfade(true).build(),
@@ -138,8 +129,6 @@ fun BackgroundWithTextAndButton(
                 .height(400.dp)
                 .clip(RoundedCornerShape(16.dp))
         )
-
-        // Text and Button
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -191,7 +180,6 @@ fun MovieLazyRow(
             )
         }
         if (movieList.isEmpty()) {
-
             LazyRow {
                 items(3) {
                     LoadingMovieCard()

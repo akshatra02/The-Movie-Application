@@ -1,7 +1,11 @@
 package com.example.themovieapp.data.source.remote.dto.favorites
 
+import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class FavouriteBody(
     val favorite: Boolean,
-    val media_id: Int,
-    val media_type: String
+    @SerializedName("media_id") val mediaId: Int,
+    @SerializedName("media_type") val mediaType: String
 )

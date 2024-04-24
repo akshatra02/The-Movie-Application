@@ -121,8 +121,6 @@ fun TheMovieAppTheme(
             setUpEdgeToEdge(view, darkTheme)
         }
     }
-
-
     MaterialTheme(
         colorScheme = DarkColorScheme,
         typography = MaterialTheme.typography,

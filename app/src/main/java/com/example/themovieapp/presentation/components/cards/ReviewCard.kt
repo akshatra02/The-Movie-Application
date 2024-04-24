@@ -29,12 +29,11 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.R
-import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.utils.IMAGE_BASE_URL
 import com.example.themovieapp.utils.toDate
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun ReviewCard(
     review: Review,
@@ -71,11 +70,11 @@ fun ReviewCard(
                         .size(100.dp)
                         .clip(CircleShape)
                 )
-                Column (
+                Column(
                     verticalArrangement = Arrangement.SpaceEvenly,
                     horizontalAlignment = Alignment.Start,
 
-                ){
+                    ) {
                     Text(
                         text = "A review by ${review.author}",
                         style = MaterialTheme.typography.titleLarge,
@@ -99,7 +98,7 @@ fun ReviewCard(
                             ) {
                                 Icon(imageVector = Icons.Default.Star, contentDescription = "")
                                 Text(
-                                    text = "${review.rating.times(10).toInt()}%".toString(),
+                                    text = "${review.rating.times(10).toInt()}%",
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(4.dp)
                                 )

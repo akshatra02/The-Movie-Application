@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.R
-import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.utils.IMAGE_BASE_URL
 
 @Composable
@@ -39,7 +38,7 @@ fun CastAndCrewCard(
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.background
-        ) // Optimized card color handling
+        )
     ) {
         Row(
             modifier = modifier

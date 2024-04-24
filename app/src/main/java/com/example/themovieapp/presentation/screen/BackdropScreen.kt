@@ -21,7 +21,6 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.themovieapp.R
-import com.example.themovieapp.data.source.remote.MoviesApi
 import com.example.themovieapp.presentation.components.Header
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
@@ -33,21 +32,20 @@ fun BackdropScreen(
     navController: NavController,
     viewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
-
     val tabPage by remember {
         mutableStateOf(TabPage.HOME)
     }
-    val movieAndExtraDetailUiState by viewModel.movieAndExtraDetailUiState.collectAsState()
-    val backdropsPathList = movieAndExtraDetailUiState.movieAndExtraDetails?.backdropsPathList
-    val title = movieAndExtraDetailUiState.movieAndExtraDetails?.title ?: ""
-    val movieId = movieAndExtraDetailUiState.movieAndExtraDetails?.id ?: -1
+    val uiState by viewModel.uiState.collectAsState()
+    val movieAndExtraDetailUiState = uiState.movieAndExtraDetails
+    val backdropsPathList = movieAndExtraDetailUiState?.backdropsPathList
+    val title = movieAndExtraDetailUiState?.title ?: ""
+    val movieId = movieAndExtraDetailUiState?.id ?: -1
     Header(title = title,
         navController = navController,
         showIcon = false,
         showBackButton = true,
         tabPage = tabPage,
         navigateOnClick = {
-
             navController.navigate("${Screen.DetailScreen.route}/${movieId}/${tabPage.name}") {
                 popUpTo("${Screen.DetailScreen.route}/${movieId}/${tabPage.name}") {
                     inclusive = true
@@ -86,5 +84,4 @@ fun ImagesGrid(imageList: List<String>) {
             )
         }
     }
-
 }

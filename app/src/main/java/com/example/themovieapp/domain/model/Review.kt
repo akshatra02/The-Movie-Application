@@ -1,7 +1,5 @@
 package com.example.themovieapp.domain.model
 
-import androidx.room.ColumnInfo
-
 data class Review(
     val movieId: Int,
     val id: String,

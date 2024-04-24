@@ -1,6 +1,5 @@
 package com.example.themovieapp.presentation.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.themovieapp.domain.usecase.GetFavouriteMoviesUseCase
@@ -27,7 +26,7 @@ class FavouriteViewModel @Inject constructor(
     }
 
     private fun getFavouriteMovies() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO)  {
             val result = getFavouriteMoviesUseCase()
             when (result) {
                 is Result.Error -> {
@@ -46,12 +45,11 @@ class FavouriteViewModel @Inject constructor(
                     }
                 }
 
-                        is Result.Success ->
+                is Result.Success ->
                     result.data?.collectLatest { movieList ->
                         _uiState.update {
                             it.copy(
-                                movieList = uiState.value.movieList + movieList,
-                                page = uiState.value.page + 1,
+                                movieList = movieList,
                                 isLoading = false
                             )
                         }

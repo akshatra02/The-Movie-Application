@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchMovieViewModel @Inject constructor(
-    private val getAllMoviesUseCase: GetAllMoviesUseCase
+    getAllMoviesUseCase: GetAllMoviesUseCase
 ) : ViewModel() {
     var searchQuery by mutableStateOf("")
         private set

@@ -5,13 +5,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.domain.usecase.GetMoviesByCategoryUseCase
+import com.example.themovieapp.domain.usecase.LoadMoreMoviesUseCase
+import com.example.themovieapp.domain.usecase.SetInitialDefaultsUseCase
 import com.example.themovieapp.utils.Category
 import com.example.themovieapp.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,54 +25,70 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getMoviesByCategoryUseCase: GetMoviesByCategoryUseCase
+    private val getMoviesByCategoryUseCase: GetMoviesByCategoryUseCase,
+    private val loadMoreMoviesUseCase: LoadMoreMoviesUseCase,
+    private val setInitialDefaultsUseCase: SetInitialDefaultsUseCase,
 ) : ViewModel() {
 
 
     private val _topRatedUiState = MutableStateFlow(MovieUiState())
-    val topRatedUiState = _topRatedUiState.asStateFlow()
-
     private val _upcomingUiState = MutableStateFlow(MovieUiState())
-    val upcomingUiState = _upcomingUiState.asStateFlow()
-
     private val _nowPlayingUiState = MutableStateFlow(MovieUiState())
-    val nowPlayingUiState = _nowPlayingUiState.asStateFlow()
-
     private val _popularUiState = MutableStateFlow(MovieUiState())
-    val popularUiState = _popularUiState.asStateFlow()
-
     private val categories = mapOf(
         Pair(Category.NOW_PLAYING, _nowPlayingUiState),
         Pair(Category.TOP_RATED, _topRatedUiState),
         Pair(Category.UPCOMING, _upcomingUiState),
         Pair(Category.POPULAR, _popularUiState)
     )
+    val homeUiState: StateFlow<HomeUiState> = combine(
+        _topRatedUiState, _upcomingUiState, _nowPlayingUiState, _popularUiState
+    ) { topRatedUiState, upcomingUiState, nowPlayingUiState, popularUiState ->
+        HomeUiState(
+            topRatedUiState = topRatedUiState,
+            upcomingUiState = upcomingUiState,
+            nowPlayingUiState = nowPlayingUiState,
+            popularUiState = popularUiState
+
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), HomeUiState())
 
     init {
-       getMovies(Category.NOW_PLAYING, false)
-        getMovies(Category.UPCOMING, false)
-        getMovies(Category.TOP_RATED, false)
-        getMovies(Category.POPULAR, false)
+        setInitialDefaults()
+        getMovies(Category.NOW_PLAYING)
+        getMovies(Category.UPCOMING)
+        getMovies(Category.TOP_RATED)
+        getMovies(Category.POPULAR)
+    }
+
+    private fun setInitialDefaults() {
+        viewModelScope.launch(Dispatchers.IO) {
+            setInitialDefaultsUseCase(
+                listOf(
+                    Category.NOW_PLAYING,
+                    Category.UPCOMING,
+                    Category.TOP_RATED,
+                    Category.POPULAR
+                )
+            )
+        }
     }
 
     fun loadMore(category: String) {
-        categories[category]?.update { it.copy(isLoading = true) }
-        getMovies(category, forceFetchFromRemote = true)
-        categories[category]?.update { it.copy(isLoading = false) }
+        viewModelScope.launch(Dispatchers.IO) {
+            loadMoreMoviesUseCase(category)
+        }
     }
 
     private fun getMovies(
-        category: String, forceFetchFromRemote: Boolean,
+        category: String
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            val _uiState :  MutableStateFlow<MovieUiState>? = categories[category]
-
+            val _uiState: MutableStateFlow<MovieUiState>? = categories[category]
             if (_uiState != null) {
                 _uiState.update { it.copy(isLoading = true) }
-
                 val result =
-                    getMoviesByCategoryUseCase(category, forceFetchFromRemote, _uiState.value.page)
-
+                    getMoviesByCategoryUseCase(category)
                 when (result) {
                     is Result.Error -> {
                         _uiState.update {
@@ -75,7 +97,6 @@ class HomeViewModel @Inject constructor(
                             )
                         }
                         return@launch
-
                     }
 
                     is Result.Loading -> {
@@ -85,21 +106,18 @@ class HomeViewModel @Inject constructor(
                             )
                         }
                         return@launch
-
                     }
 
                     is Result.Success -> {
-                        result.data?.collectLatest{ moviesList ->
+                        result.data?.collectLatest { moviesList ->
                             _uiState.update {
                                 it.copy(
-                                    movieList = _uiState.value.movieList + moviesList,
-                                    page = _uiState.value.page + 1,
+                                    movieList = moviesList,
                                     isLoading = false
                                 )
                             }
                         }
                     }
-
                 }
             }
         }
@@ -108,6 +126,12 @@ class HomeViewModel @Inject constructor(
 
 data class MovieUiState(
     val movieList: List<Movie?> = emptyList(),
-    val page: Int = 1,
     val isLoading: Boolean = true,
+)
+
+data class HomeUiState(
+    val topRatedUiState: MovieUiState = MovieUiState(),
+    val upcomingUiState: MovieUiState = MovieUiState(),
+    val nowPlayingUiState: MovieUiState = MovieUiState(),
+    val popularUiState: MovieUiState = MovieUiState(),
 )

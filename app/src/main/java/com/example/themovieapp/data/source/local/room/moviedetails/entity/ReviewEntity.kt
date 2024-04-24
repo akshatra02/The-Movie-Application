@@ -26,15 +26,4 @@ data class ReviewEntity(
     @ColumnInfo("avatar_path") val avatarPath: String,
     @ColumnInfo("created_at") val createdAt: String,
 
-){
-    fun toReview():Review = Review(
-        movieId = movieId,
-        id = id,
-        author = author,
-        content = content,
-        url = url,
-        rating = rating,
-        avatarPath = avatarPath,
-        createdAt = createdAt,
-    )
-}
+)

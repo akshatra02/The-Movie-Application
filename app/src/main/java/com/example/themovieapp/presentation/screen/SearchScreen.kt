@@ -44,7 +44,6 @@ import com.example.themovieapp.R
 import com.example.themovieapp.domain.model.Movie
 import com.example.themovieapp.presentation.components.Header
 import com.example.themovieapp.presentation.components.RatingBar
-import com.example.themovieapp.presentation.components.loadingitems.LoadingRowCard
 import com.example.themovieapp.presentation.navigation.Screen
 import com.example.themovieapp.presentation.viewmodel.MovieDetailsViewModel
 import com.example.themovieapp.presentation.viewmodel.SearchMovieViewModel
@@ -59,7 +58,6 @@ fun SearchScreen(
     searchViewModel: SearchMovieViewModel = hiltViewModel(),
     movieViewModel: MovieDetailsViewModel = hiltViewModel()
 ) {
-
     val tabPage by remember {
         mutableStateOf(TabPage.SEARCH)
     }
@@ -87,13 +85,11 @@ fun SearchScreen(
             if (isEmpty) {
                 MovieListEmptyState()
             } else {
-
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(16.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-
                     items(
                         count = searchResult.size,
                         key = { index -> searchResult[index].id },
@@ -141,8 +137,6 @@ fun MovieListItem(
 ) {
     val rating = movie.voteAverage
     val isFavourite = movie.isFavourite
-
-
     Card(
         modifier = modifier
             .fillMaxSize()
@@ -200,21 +194,19 @@ fun MovieListItem(
                         .alpha(0.6f)
                 )
                 if (rating != null) {
-                Row(
-                    modifier = modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.rating_score).format(rating),
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                        RatingBar(rating)
+                    Row(
+                        modifier = modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.rating_score).format(rating),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        RatingBar(rating = rating)
                     }
-
                 }
             }
-
         }
     }
 }

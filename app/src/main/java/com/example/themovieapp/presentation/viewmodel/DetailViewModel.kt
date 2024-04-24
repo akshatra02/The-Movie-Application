@@ -8,16 +8,20 @@ import com.example.themovieapp.domain.model.CastAndCrew
 import com.example.themovieapp.domain.model.MovieDetailsAndExtraDetails
 import com.example.themovieapp.domain.model.Review
 import com.example.themovieapp.domain.usecase.AddExtraMovieDetails
-import com.example.themovieapp.domain.usecase.AddFavouriteMovieUseCase
 import com.example.themovieapp.domain.usecase.GetCastAndCrewUseCase
 import com.example.themovieapp.domain.usecase.GetExtraMovieDetailsUseCase
 import com.example.themovieapp.domain.usecase.GetMovieReviewUseCase
+import com.example.themovieapp.domain.usecase.UpdateFavouriteStatusUseCase
 import com.example.themovieapp.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,29 +31,37 @@ import javax.inject.Inject
 class MovieDetailsViewModel @Inject constructor(
     private val getMovieByIdUseCase: GetExtraMovieDetailsUseCase,
     private val getMovieReviewUseCase: GetMovieReviewUseCase,
-    private val addFavouriteMoviesUseCase: AddFavouriteMovieUseCase,
+    private val updateFavouriteStatusUseCase: UpdateFavouriteStatusUseCase,
     private val addExtraMovieDetails: AddExtraMovieDetails,
     private val getCastAndCrewStream: GetCastAndCrewUseCase,
-    private val savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _recommendedMovieListUiState = MutableStateFlow(RecommendationListUiState())
-    val recommendedMovieListUiState = _recommendedMovieListUiState.asStateFlow()
-
-    private val _castAndCrewListUiState = MutableStateFlow(CastAndCrewListUiState())
-    val castAndCrewListUiState = _castAndCrewListUiState.asStateFlow()
-
-    private val _reviewListUiState = MutableStateFlow(ReviewListUiState())
-    val reviewListUiState = _reviewListUiState.asStateFlow()
-
     private val _movieAndExtraDetailUiState = MutableStateFlow(MovieAndExtraDetailsUiState())
-    val movieAndExtraDetailUiState = _movieAndExtraDetailUiState.asStateFlow()
-
-
+    private val _castAndCrewListUiState = MutableStateFlow(CastAndCrewListUiState())
+    private val _reviewListUiState = MutableStateFlow(ReviewListUiState())
+    private val _recommendedMovieListUiState = MutableStateFlow(RecommendationListUiState())
     val movieId = savedStateHandle.get<Int>("movieId")
 
-    init {
+    val uiState: StateFlow<UiState> = combine(
+        _movieAndExtraDetailUiState,
+        _castAndCrewListUiState,
+        _reviewListUiState,
+        _recommendedMovieListUiState
+    ) { movieAndExtraDetailsUiState, castAndCrewListUiState, reviewListUiState, recommendedMovieListUiState ->
+        UiState(
+            movieAndExtraDetails = movieAndExtraDetailsUiState.movieAndExtraDetails,
+            castAndCrewState = castAndCrewListUiState,
+            reviewState = reviewListUiState,
+            recommendationState = recommendedMovieListUiState
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        UiState()
+    )
 
+    init {
         if (movieId != null) {
             getMovieDetails(movieId)
             getExtraMovieDetails(movieId)
@@ -58,9 +70,8 @@ class MovieDetailsViewModel @Inject constructor(
 
     private fun getMovieDetails(movieId: Int) {
         _movieAndExtraDetailUiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch {
-            val result = getMovieByIdUseCase(movieId)
-            when (result) {
+        viewModelScope.launch(Dispatchers.IO)  {
+            when (val result = getMovieByIdUseCase(movieId)) {
                 is Result.Error ->
                     _movieAndExtraDetailUiState.update {
                         it.copy(isLoading = true)
@@ -68,15 +79,106 @@ class MovieDetailsViewModel @Inject constructor(
 
                 is Result.Loading ->
                     _movieAndExtraDetailUiState.update {
-                        it.copy(isLoading = movieAndExtraDetailUiState.value.isLoading)
+                        it.copy(isLoading = _movieAndExtraDetailUiState.value.isLoading)
                     }
 
                 is Result.Success -> {
-                    result.data?.collectLatest { result ->
+                    result.data?.collectLatest { movieResult ->
                         _movieAndExtraDetailUiState.update {
                             it.copy(
-                                movieAndExtraDetails = result,
-                                extraDetailsAvailable = result?.movieId != null
+                                movieAndExtraDetails = movieResult,
+                                extraDetailsAvailable = movieResult?.movieId != null
+                            )
+                        }
+                        val recommendationMoviesList = movieResult?.recommendationMoviesList
+                        if (recommendationMoviesList != null) {
+                            for (recommendedMovie in recommendationMoviesList) {
+                                when (val recommendedMovieResult =
+                                    getMovieByIdUseCase(recommendedMovie)) {
+                                    is Result.Error -> {
+                                        _recommendedMovieListUiState.update {
+                                            it.copy(isLoading = true)
+                                        }
+                                    }
+
+                                    is Result.Loading -> {
+                                        _recommendedMovieListUiState.update {
+                                            it.copy(isLoading = _recommendedMovieListUiState.value.isLoading)
+                                        }
+                                    }
+
+                                    is Result.Success -> {
+                                        val recommendedMovieState =
+                                            recommendedMovieResult.data?.first()
+                                        _recommendedMovieListUiState.update {
+                                            it.copy(
+                                                movieList = _recommendedMovieListUiState.value.movieList + recommendedMovieState
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getCastAndCrew(movieId: Int) {
+        viewModelScope.launch(Dispatchers.IO)  {
+            val castAndCrewResult =
+                getCastAndCrewStream(movieId)
+            when (castAndCrewResult) {
+                is Result.Error -> {
+                    _castAndCrewListUiState.update {
+                        it.copy(isLoading = true)
+                    }
+                }
+
+                is Result.Loading -> {
+                    _castAndCrewListUiState.update {
+                        it.copy(isLoading = _castAndCrewListUiState.value.isLoading)
+                    }
+                }
+
+                is Result.Success -> {
+                    val castAndCrew = castAndCrewResult.data?.first()
+                    if (castAndCrew != null) {
+                        _castAndCrewListUiState.update {
+                            it.copy(
+                                castAndCrew = _castAndCrewListUiState.value.castAndCrew + castAndCrew,
+                                isLoading = false
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getReview(movieId: Int) {
+        viewModelScope.launch(Dispatchers.IO)  {
+            when (val reviewResult = getMovieReviewUseCase(movieId)) {
+                is Result.Error -> {
+                    _reviewListUiState.update {
+                        it.copy(isLoading = true)
+                    }
+                }
+
+                is Result.Loading -> {
+                    _reviewListUiState.update {
+                        it.copy(isLoading = _reviewListUiState.value.isLoading)
+                    }
+                }
+
+                is Result.Success -> {
+                    val review = reviewResult.data?.first()
+                    if (review != null) {
+                        _reviewListUiState.update {
+                            it.copy(
+                                review = _reviewListUiState.value.review + review,
+                                isLoading = false
                             )
                         }
                     }
@@ -86,132 +188,23 @@ class MovieDetailsViewModel @Inject constructor(
     }
 
     private fun getExtraMovieDetails(movieId: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO)  {
             _movieAndExtraDetailUiState.update { it.copy(isLoading = true) }
-            val result = addExtraMovieDetails(movieId)
-            when (result) {
-                is Result.Error -> {
-                    _movieAndExtraDetailUiState.update {
-                        it.copy(isLoading = true)
-                    }
-
-                }
-
-                is Result.Loading -> {
-                    _movieAndExtraDetailUiState.update {
-                        it.copy(isLoading = movieAndExtraDetailUiState.value.isLoading)
-                    }
-
-                }
-
-                is Result.Success -> {
-                    val movie = result.data?.first()
-                    _movieAndExtraDetailUiState.update {
-                        it.copy(
-                            movieAndExtraDetails = movie
-                        )
-                    }
-
-                    val listOfRecommendationMovies = movie?.recommendationMoviesList
-                    if (listOfRecommendationMovies != null) {
-                        for (recommendedMovie in listOfRecommendationMovies) {
-                            val recommendedMovieResult = getMovieByIdUseCase(recommendedMovie)
-                            when (recommendedMovieResult) {
-                                is Result.Error -> {
-                                    _recommendedMovieListUiState.update {
-                                        it.copy(isLoading = true)
-                                    }
-                                }
-
-                                is Result.Loading -> {
-                                    _recommendedMovieListUiState.update {
-                                        it.copy(isLoading = _recommendedMovieListUiState.value.isLoading)
-                                    }
-                                }
-
-                                is Result.Success -> {
-                                    val recommendedMovieState =
-                                        recommendedMovieResult.data?.first()
-                                    _recommendedMovieListUiState.update {
-                                        it.copy(
-                                            movieList = recommendedMovieListUiState.value.movieList + recommendedMovieState
-                                        )
-                                    }
-                                }
-
-                            }
-
-                        }
-                    }
-
-                    val castAndCrewResult =
-                        getCastAndCrewStream(movieId)
-                    when (castAndCrewResult) {
-                        is Result.Error -> {
-                            _castAndCrewListUiState.update {
-                                it.copy(isLoading = true)
-                            }
-                        }
-
-                        is Result.Loading -> {
-                            _castAndCrewListUiState.update {
-                                it.copy(isLoading = castAndCrewListUiState.value.isLoading)
-                            }
-                        }
-
-                        is Result.Success -> {
-                            val castAndCrew = castAndCrewResult.data?.first()
-                            if (castAndCrew != null) {
-                                _castAndCrewListUiState.update {
-                                    it.copy(
-                                        castAndCrew = castAndCrewListUiState.value.castAndCrew + castAndCrew,
-                                        isLoading = false
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    val reviewResult = getMovieReviewUseCase(movieId)
-                    when (reviewResult) {
-                        is Result.Error -> {
-                            _reviewListUiState.update {
-                                it.copy(isLoading = true)
-                            }
-                        }
-
-                        is Result.Loading -> {
-                            _reviewListUiState.update {
-                                it.copy(isLoading = reviewListUiState.value.isLoading)
-                            }
-                        }
-
-                        is Result.Success -> {
-                            val review = reviewResult.data?.first()
-                            if (review != null) {
-                                _reviewListUiState.update {
-                                    it.copy(
-                                        review = reviewListUiState.value.review + review,
-                                        isLoading = false
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-            }
+            addExtraMovieDetails(movieId)
+            getCastAndCrew(movieId)
+            getReview(movieId)
         }
     }
 
     fun addMovieToFavourite(id: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO)  {
             val movie = getMovieByIdUseCase(id).data?.first()
             val favouriteBody = movie?.let {
                 FavouriteBody(
-                    favorite = movie.isFavourite, media_id = id, media_type = "movie"
+                    favorite = movie.isFavourite, mediaId = id, mediaType = "movie"
                 )
             }
-            val addMovieToFav = favouriteBody?.let { addFavouriteMoviesUseCase(it) }
+            val addMovieToFav = favouriteBody?.let { updateFavouriteStatusUseCase(it) }
             if (addMovieToFav == true) {
                 val updatedMovie = movie.copy(
                     isFavourite = !movie.isFavourite
@@ -225,24 +218,28 @@ class MovieDetailsViewModel @Inject constructor(
 data class CastAndCrewListUiState(
     val castAndCrew: List<CastAndCrew> = emptyList(),
     val isLoading: Boolean = true,
-
-    )
+)
 
 data class RecommendationListUiState(
-
     val movieList: List<MovieDetailsAndExtraDetails?> = emptyList(),
     val isLoading: Boolean = true,
-
-    )
+)
 
 data class ReviewListUiState(
     val review: List<Review> = emptyList(),
     val isLoading: Boolean = true,
-
-    )
+)
 
 data class MovieAndExtraDetailsUiState(
     val movieAndExtraDetails: MovieDetailsAndExtraDetails? = null,
     val isLoading: Boolean = true,
     val extraDetailsAvailable: Boolean = false
+)
+
+data class UiState(
+    val movieAndExtraDetails: MovieDetailsAndExtraDetails? = null,
+    val castAndCrewState: CastAndCrewListUiState = CastAndCrewListUiState(),
+    val reviewState: ReviewListUiState = ReviewListUiState(),
+    val recommendationState: RecommendationListUiState = RecommendationListUiState(),
+    val isLoading: Boolean = true,
 )

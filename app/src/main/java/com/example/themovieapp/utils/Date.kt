@@ -1,9 +1,9 @@
 package com.example.themovieapp.utils
 
-fun toDate(date: String): String{
+fun toDate(date: String): String {
     val dateList = date.split("-")
     val monthNumber = dateList[1].toInt()
-    val month = when(monthNumber){
+    val month = when (monthNumber) {
         1 -> "Jan"
         2 -> "Feb"
         3 -> "Mar"
@@ -17,6 +17,6 @@ fun toDate(date: String): String{
         11 -> "Nov"
         else -> "Dec"
     }
-    return "$month ${dateList[2].substring(0,2)}, ${dateList[0]}"
+    return "$month ${dateList[2].substring(0, 2)}, ${dateList[0]}"
 
 }

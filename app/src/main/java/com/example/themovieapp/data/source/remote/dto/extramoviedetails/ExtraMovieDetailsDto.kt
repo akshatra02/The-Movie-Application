@@ -36,47 +36,4 @@ data class ExtraMovieDetailsDto(
     val videoLink: String?,
     val postersPathList: String?,
     val backdropsPathList: String?,
-) {
-    fun toExtraMovieDetailsEntity(recommendationMoviesList: List<Int>,postersPathList: String,backdropsPathList: String, videoLink: String) = ExtraMovieDetailsEntity(
-        movieId = id ?: 0,
-        budget = budget ?: 0,
-        homepage = homepage ?: "",
-        imdbId = imdbId ?: "",
-        revenue = revenue ?: 0,
-        runtime = runtime ?: 0,
-        status = status ?: "",
-        tagline = tagline ?: "",
-        recommendationMoviesList = recommendationMoviesList.toString(),
-        postersPathList = postersPathList,
-        backdropsPathList = backdropsPathList,
-        videoLink = videoLink,
-
-    )
-
-    fun toMovieEntity(
-        category: String,
-        genreNames: String,
-        genreIds: String,
-        isFavourite: Boolean,
-    ): MovieEntity {
-        return MovieEntity(
-            adult = adult ?: false,
-            backdropPath = backdropPath ?: "",
-            originalLanguage = originalLanguage ?: "",
-            originalTitle = originalTitle ?: "",
-            overview = overview ?: "",
-            popularity = popularity ?: 0.0,
-            posterPath = posterPath ?: "",
-            releaseDate = releaseDate ?: "",
-            title = title ?: "",
-            video = video ?: false,
-            voteAverage = voteAverage ?: 0.0,
-            voteCount = voteCount ?: 0,
-            id = id ?: 0,
-            category = category,
-            genreIds = genreIds,
-            genreNames = genreNames,
-            isFavourite = isFavourite,
-        )
-    }
-}
+)

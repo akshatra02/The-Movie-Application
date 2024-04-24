@@ -76,27 +76,28 @@ fun Header(
             }
         },
             navigationIcon = {
-                if (showBackButton){
-                IconButton(onClick = {
-                    if (navigateOnClick != null) {
-                        navigateOnClick()
+                if (showBackButton) {
+                    IconButton(onClick = {
+                        if (navigateOnClick != null) {
+                            navigateOnClick()
+                        }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBackIosNew,
+                            contentDescription = ""
+                        )
                     }
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBackIosNew,
-                        contentDescription = ""
-                    )
-                }}
+                }
             })
     },
         bottomBar = {
-        BottomAppBar {
-            BottomTab(navController = navController,
-                currentPage = tabPage,
-                onTabSelected = { tabPage = it })
-        }
+            BottomAppBar {
+                BottomTab(navController = navController,
+                    currentPage = tabPage,
+                    onTabSelected = { tabPage = it })
+            }
 
-    }) { paddingValue ->
+        }) { paddingValue ->
         content(paddingValue)
     }
 }

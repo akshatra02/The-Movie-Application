@@ -6,8 +6,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -40,13 +38,13 @@ class MoviesNetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofitService(okHttpClient: OkHttpClient): MoviesApi{
-    return Retrofit.Builder()
-         .addConverterFactory(GsonConverterFactory.create())
-         .baseUrl(MoviesApi.BASE_URL)
-         .client(okHttpClient)
-         .build()
-         .create(MoviesApi::class.java)
+    fun provideRetrofitService(okHttpClient: OkHttpClient): MoviesApi {
+        return Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(MoviesApi.BASE_URL)
+            .client(okHttpClient)
+            .build()
+            .create(MoviesApi::class.java)
 
     }
 }
